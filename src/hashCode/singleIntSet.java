@@ -1,7 +1,7 @@
 package hashCode;
 
 public class singleIntSet {
-    private Object[] _values = new Object[10];
+    protected Object[] _values = new Object[10];
 
     protected int H(int item){
         return item;

@@ -3,6 +3,8 @@ package common;
 import java.util.Arrays;
 
 public class common {
+    private static String interval = "============================================================";
+
     public static int[] swap(int[] arr, int a, int b, int min, int max){
         int[] array = Arrays.copyOf(arr, arr.length);
         if(a != b && a <= max && b <= max && a >= min && b >= min){
@@ -48,5 +50,9 @@ public class common {
             }
         }
         return true;
+    }
+
+    public static void intervalLine(int times){
+        System.out.println(times + "  " + interval);
     }
 }
