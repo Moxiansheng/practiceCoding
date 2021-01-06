@@ -1,22 +1,24 @@
-import reflection.reflectClass;
-import reflection.reflectedClass;
+import reflection.*;
 import sort.*;
-import dataStructure.heap;
+import dataStructure.*;
+import hashCode.*;
 
-import java.util.HashSet;
 import java.util.Scanner;
 
 public class test {
+    private static String interval = "============================================================";
+    private static int type = 4;
+
     public static void main(String[] args) {
         //Scanner sc = new Scanner(System.in);
-        // int type = sc.nextInt();
-        int type = 3;
+        // type = sc.nextInt();
         /*
         0:sort
         1:dataStructure
         2:reflection
         3:equals()
         4:hashCode()
+        5:判断质数算法，哪个更快
         */
         if(type == 0){
             int[] array = {22, 34, 3, -32, 82, 55, 89, -50, 37, -5, 64, 35, 9, 70};
@@ -52,8 +54,8 @@ public class test {
                 e.printStackTrace();
             }
         }else if(type == 3){
-            String a = new String("ab");
-            String b = new String("ab");
+            String a = "ab";
+            String b = "ab";
             System.out.println(a.equals(b));
 
             try{
@@ -66,8 +68,79 @@ public class test {
                 e.printStackTrace();
             }
         }else if(type == 4){
-            HashSet<Integer> hs = new HashSet<>();
+            singleIntSet set;
+            int times = 1;
 
+            intervalLine(times++);
+            set = new singleIntSet();
+            set.Add(3);
+            set.Add(7);
+            System.out.println(set.Contains(3)); // 输出 true
+            System.out.println(set.Contains(5)); // 输出 false
+
+            intervalLine(times++);
+
+            set = new singleIntSet2();
+            set.Add(13);
+            set.Add(17);
+            System.out.println(set.Contains(13)); // 输出 true
+            System.out.println(set.Contains(15)); // 输出 false
+
+            intervalLine(times++);
+
+            set = new singleIntSet3();
+            set.Add(3);
+            System.out.println(set.Contains(3));
+            set.Add(13);
+            System.out.println(set.Contains(3));
+
+            intervalLine(times++);
+
+            set = new singleIntSet4();
+            set.Add(3);
+            System.out.println(set.Contains(3));
+            set.Add(13);
+            System.out.println(set.Contains(3));
+
+            intervalLine(times++);
+
+            set = new singleIntSet5();
+            set.Add(3);
+            System.out.println(set.Contains(3));
+            set.Add(13);
+            System.out.println(set.Contains(3));
+
+            intervalLine(times++);
+
+            set = new singleIntSet6(9);
+            set.Add(3);
+            System.out.println(set.Contains(3));
+            set.Add(13);
+            System.out.println(set.Contains(3));
+
+            intervalLine(times++);
+
+            set = new singleIntSet7(9);
+            set.Add(3);
+            System.out.println(set.Contains(3));
+            set.Add(13);
+            System.out.println(set.Contains(3));
+        }else if(type == 5){
+            long start = System.nanoTime();
+            common.common.isPrime1(999999999);
+            long end = System.nanoTime();
+            System.out.println(end - start);
+
+            intervalLine(0);
+
+            start = System.nanoTime();
+            common.common.isPrime2(999999999);
+            end = System.nanoTime();
+            System.out.println(end - start);
         }
+    }
+
+    private static void intervalLine(int times){
+        System.out.println(times + "  " + interval);
     }
 }
