@@ -55,4 +55,8 @@ public class common {
     public static void intervalLine(int times){
         System.out.println(times + "  " + interval);
     }
+
+    public static void intervalLine2(){
+        System.out.println(interval);
+    }
 }
