@@ -16,7 +16,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 public class test {
-    private static int type = 11;
+    private static int type = 14;
     /*
         0:  sort
         1:  dataStructure
@@ -32,6 +32,7 @@ public class test {
         11. Inversion and Covariance 逆变与协变
         12. 关于null
         13. 拆箱与装箱
+        14. LinkedList
     */
 
     public static void main(String[] args) throws Exception{
@@ -69,7 +70,24 @@ public class test {
             test12();
         }else if(type == 13){
             test13();
+        }else if(type == 14){
+            test14();
         }
+    }
+
+    private static void test14() {
+        SingleLinkedList<Double> sll = new SingleLinkedList<>();
+        System.out.println(sll.addAtHead(2.1));
+        System.out.println(sll.addAtTail(3.2));
+        System.out.println(sll.addAtIndex(2.9, 1));
+        System.out.println(sll.get(-1));
+        System.out.println(sll.get(3));
+        System.out.println(sll.get(0));
+        System.out.println(sll.delIndex(-1));
+        System.out.println(sll.get(0));
+        System.out.println(sll.getHead());
+        System.out.println(sll.delIndex(3));
+        System.out.println(sll.getTail());
     }
 
     private static void test13() {
