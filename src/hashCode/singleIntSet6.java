@@ -33,7 +33,7 @@ public class singleIntSet6 extends singleIntSet5{
         // min 超过了质数表的范围时，探查 min 之后的每一个奇数，直到发现下一个质数
         for (int i = (min | 1); i < Integer.MAX_VALUE; i += 2)
         {
-            if (common.common.isPrime2(i))
+            if (common.common.isPrime1(i))
                 return i;
         }
         return min;

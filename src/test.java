@@ -16,7 +16,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 public class test {
-    private static int type = 14;
+    private static int type = 5;
     /*
         0:  sort
         1:  dataStructure
@@ -673,14 +673,23 @@ public class test {
 
     private static void test5(){
         long start = System.nanoTime();
-        common.common.isPrime1(999999999);
+        common.common.isPrime1(99999999999999l);
         long end = System.nanoTime();
         System.out.println(end - start);
 
-        common.common.intervalLine(0);
+        common.common.intervalLine2();
 
+        // faster
         start = System.nanoTime();
-        common.common.isPrime2(999999999);
+        common.common.isPrime1(99999999999999l);
+        end = System.nanoTime();
+        System.out.println(end - start);
+
+        common.common.intervalLine2();
+
+        // slower
+        start = System.nanoTime();
+        common.common.isPrime2(99999999999999l);
         end = System.nanoTime();
         System.out.println(end - start);
     }
