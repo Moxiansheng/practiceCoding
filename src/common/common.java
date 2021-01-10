@@ -15,9 +15,37 @@ public class common {
         return array;
     }
 
+    public static long comparePrime(long num){
+        // if res > 0 isPrime1 faster
+        // if res < 0 isPrime2 faster
+
+        /**
+         * 测不出来 哭了
+         * 可能要多线程
+         */
+
+        long start = System.nanoTime();
+        common.isPrime1(num);
+        long end = System.nanoTime();
+        long res = start - end;
+
+        start = System.nanoTime();
+        common.isPrime2(num);
+        end = System.nanoTime();
+        res += end - start;
+
+        if(res == 0){
+            return res;
+        }else if(res > 0){
+            return 1;
+        }else{
+            return -1;
+        }
+    }
+
     public static boolean isPrime1(long candidate) {
         /**
-         * 较快的判断质数算法
+         * 较？的判断质数算法
          * */
         if ((candidate & 1) != 0) // 是奇数
         {
@@ -34,7 +62,9 @@ public class common {
 
     public static boolean isPrime2(long num) {
         /**
-        * 较慢的判断质数算法
+        * 较？的判断质数算法
+         *
+         * 我自己感觉这个会更快
         * */
         if (num <= 3) {
             return num > 1;
@@ -58,5 +88,9 @@ public class common {
 
     public static void intervalLine2(){
         System.out.println(interval);
+    }
+
+    public static String analyzeURL(String url){
+        return pathDefault.getResourcesPath() + url.substring(url.lastIndexOf("/") + 1);
     }
 }

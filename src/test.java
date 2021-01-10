@@ -1,8 +1,11 @@
+import common.*;
 import designPattern.Proxy.*;
 import generic.*;
 import lambda.*;
 import mutilThread.*;
-import network.*;
+import network.TCP.ClientServerTCP;
+import network.UDP.SendReceiveUDP;
+import network.URL.URLDownloader;
 import reflection.*;
 import sort.*;
 import dataStructure.*;
@@ -11,20 +14,17 @@ import hashCode.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 public class test {
-    private static int type = 5;
+    private static int type = 16;
     /*
         0:  sort
-        1:  dataStructure
+        1:  heap
         2:  reflection
         3:  equals()
         4:  hashCode()
         5:  判断质数算法，哪个更快
-        6.  network
+        6.  TCP
         7.  multiThread
         8.  designPattern
         9.  lambda
@@ -33,6 +33,8 @@ public class test {
         12. 关于null
         13. 拆箱与装箱
         14. LinkedList
+        15. UDP
+        16. URL
     */
 
     public static void main(String[] args) throws Exception{
@@ -72,7 +74,26 @@ public class test {
             test13();
         }else if(type == 14){
             test14();
+        }else if(type == 15){
+            test15();
+        }else if(type == 16){
+            test16();
         }
+    }
+
+    private static void test16() throws Exception{
+        String url = "https://m801.music.126.net/20210110232511/4f3468a771c1967dcff210da10e462ac/jdyyaac/obj/w5rDlsOJwrLDjj7CmsOj/5640428920/e99c/9015/2057/d7fa4163b75631c062223dbe42b76218.m4a";
+        new URLDownloader(url).download();
+    }
+
+    private static void test15() throws Exception{
+        // 用多线程才能测出来
+        String ipAdd = "127.0.0.1";
+        int port = 9999;
+        String sendMessage = "D:\\IDEA projects\\practiceCoding\\src\\resources\\photo.jpg";
+
+        SendReceiveUDP sudp = new SendReceiveUDP(ipAdd, port);
+        sudp.sendMessage();
     }
 
     private static void test14() {
@@ -477,7 +498,7 @@ public class test {
         System.out.println(list1.getClass() == list2.getClass());
 
         // ========================================================
-        common.common.intervalLine2();
+        common.intervalLine2();
 
         // E2.通过反射添加其他类型元素
         ArrayList<Integer> list3 = new ArrayList<Integer>();
@@ -491,7 +512,7 @@ public class test {
         // 要区分原始类型和泛型变量的类型
 
         // ========================================================
-        common.common.intervalLine2();
+        common.intervalLine2();
 
         // 在调用泛型方法时，可以指定泛型，也可以不指定泛型
         // 在不指定泛型的情况下，泛型变量的类型为该方法中的几种类型的同一父类的最小级，直到Object
@@ -507,7 +528,7 @@ public class test {
         System.out.println(e + " " + h);
 
         // ========================================================
-        common.common.intervalLine2();
+        common.intervalLine2();
 
         // 其实在泛型类中，不指定泛型的时候，也差不多，只不过这个时候的泛型为Object，就比如ArrayList中，如果不指定泛型，
         // 那么这个ArrayList可以存储任意的对象。
@@ -520,7 +541,7 @@ public class test {
         }
 
         // ========================================================
-        common.common.intervalLine2();
+        common.intervalLine2();
 
         /**
          * ArrayList<String> list1 = new ArrayList(); //第一种 情况
@@ -535,7 +556,7 @@ public class test {
         // 而无关它真正引用的对象。
 
         // ========================================================
-        common.common.intervalLine2();
+        common.intervalLine2();
 
         // 类型擦除与多态的冲突和解决办法
         testGeneric3 testGeneric3 = new testGeneric3();
@@ -624,35 +645,46 @@ public class test {
 //            new Thread(tt4, "rabbit").start();
 //            new Thread(tt4, "turtle").start();
 
-        // cs-socket通讯
+        // c-s -- TCP
 //            String ipAdd = "127.0.0.1";
 //            int port = 9999;
-//            String sendMessage = "Hello, world!";
+//            String sendMessage = "D:\\IDEA projects\\practiceCoding\\src\\resources\\photo.jpg";
 //
-//            threadServer threadServer = new threadServer(port);
+//            ThreadServerTCP threadServer = new ThreadServerTCP(port);
 //            new Thread(threadServer).start();
 //
-//            threadClient threadClient = new threadClient(ipAdd, port, sendMessage);
+//            ThreadClientTCP threadClient = new ThreadClientTCP(ipAdd, port, sendMessage);
 //            new Thread(threadClient).start();
 
-        // Callable
-        testThread5 tt5 = new testThread5(1);
+        // s-r -- UDP 暂时有问题
+            String ipAdd = "localhost";
+            int port = 9090;
+            String sendMessage = "D:\\IDEA projects\\practiceCoding\\src\\resources\\photo.jpg";
 
-        // 创建执行服务
-        ExecutorService es = Executors.newFixedThreadPool(3);
+            ThreadReceiveUDP receiveUDP = new ThreadReceiveUDP(port, ipAdd);
+            new Thread(receiveUDP);
 
-        // 提交执行
-        Future<Integer> r1 = es.submit(tt5);
-        Future<Integer> r2 = es.submit(tt5);
-        Future<Integer> r3 = es.submit(tt5);
+            ThreadSendUDP sendUDP = new ThreadSendUDP(9082, ipAdd, port);
+            new Thread(sendUDP);
 
-        //获取结果
-        System.out.println(r1.get());
-        System.out.println(r2.get());
-        System.out.println(r3.get());
-
-        //关闭服务
-        es.shutdown();
+//        // Callable
+//        testThread5 tt5 = new testThread5(1);
+//
+//        // 创建执行服务
+//        ExecutorService es = Executors.newFixedThreadPool(3);
+//
+//        // 提交执行
+//        Future<Integer> r1 = es.submit(tt5);
+//        Future<Integer> r2 = es.submit(tt5);
+//        Future<Integer> r3 = es.submit(tt5);
+//
+//        //获取结果
+//        System.out.println(r1.get());
+//        System.out.println(r2.get());
+//        System.out.println(r3.get());
+//
+//        //关闭服务
+//        es.shutdown();
     }
 
     private static void test6() throws Exception{
@@ -662,50 +694,47 @@ public class test {
         int port = 9999;
         String sendMessage = "Hello, world!";
 
-        server s = new server(port);
+        ClientServerTCP s = new ClientServerTCP(port);
 
-        client c = new client(ipAdd, port, sendMessage);
-        c.sendMessage();
+        ClientServerTCP c = new ClientServerTCP(ipAdd, port);
+        c.sendMessage(sendMessage);
 
         String getMessage = s.getMessage();
         System.out.println(getMessage);
     }
 
     private static void test5(){
-        long start = System.nanoTime();
-        common.common.isPrime1(99999999999999l);
-        long end = System.nanoTime();
-        System.out.println(end - start);
+        // 单线程测不出来
+        long res = 0, num = 999999999999999l;
 
-        common.common.intervalLine2();
+        for (int j = 0; j < 10; j++) {
+            // 算法初启动
+            for (int i = 0; i < 10000; i++) {
+                common.comparePrime(num);
+            }
 
-        // faster
-        start = System.nanoTime();
-        common.common.isPrime1(99999999999999l);
-        end = System.nanoTime();
-        System.out.println(end - start);
+            res = 0;
+            for (int i = 0; i < 10000; i++) {
+                res += common.comparePrime(num);
+            }
+            System.out.println(res);
+        }
 
-        common.common.intervalLine2();
-
-        // slower
-        start = System.nanoTime();
-        common.common.isPrime2(99999999999999l);
-        end = System.nanoTime();
-        System.out.println(end - start);
+        // 多线程试试
     }
 
     private static void test4(){
         singleIntSet set;
         int times = 1;
 
-        common.common.intervalLine(times++);
+        common.intervalLine(times++);
         set = new singleIntSet();
         set.Add(3);
         set.Add(7);
         System.out.println(set.Contains(3)); // 输出 true
         System.out.println(set.Contains(5)); // 输出 false
 
-        common.common.intervalLine(times++);
+        common.intervalLine(times++);
 
         set = new singleIntSet2();
         set.Add(13);
@@ -713,7 +742,7 @@ public class test {
         System.out.println(set.Contains(13)); // 输出 true
         System.out.println(set.Contains(15)); // 输出 false
 
-        common.common.intervalLine(times++);
+        common.intervalLine(times++);
 
         set = new singleIntSet3();
         set.Add(3);
@@ -721,37 +750,70 @@ public class test {
         set.Add(13);
         System.out.println(set.Contains(3));
 
-        common.common.intervalLine(times++);
+        common.intervalLine(times++);
 
-        set = new singleIntSet4();
+        set = new LinkedIntSet4();
         set.Add(3);
         System.out.println(set.Contains(3));
         set.Add(13);
         System.out.println(set.Contains(3));
 
-        common.common.intervalLine(times++);
+        common.intervalLine(times++);
 
-        set = new singleIntSet5();
+        set = new DivisionIntSet();
         set.Add(3);
         System.out.println(set.Contains(3));
         set.Add(13);
         System.out.println(set.Contains(3));
 
-        common.common.intervalLine(times++);
+        common.intervalLine(times++);
 
-        set = new singleIntSet6(9);
+        set = new DivPrimeIntSet(9);
         set.Add(3);
         System.out.println(set.Contains(3));
         set.Add(13);
         System.out.println(set.Contains(3));
 
-        common.common.intervalLine(times++);
+        common.intervalLine(times++);
 
-        set = new singleIntSet7(9);
+        set = new MultIntSet(9);
         set.Add(3);
         System.out.println(set.Contains(3));
         set.Add(13);
         System.out.println(set.Contains(3));
+
+        common.intervalLine(times++);
+
+        set = new LineIntSet();
+        set.Add(3);
+        System.out.println(set.Contains(3));
+        set.Add(13);
+        set.Add(23);
+        set.Remove(13);
+        System.out.println(set.Contains(13));
+        set.Remove(23);
+        System.out.println(set.Contains(23));
+
+        common.intervalLine(times++);
+
+        set = new TwiceIntSet();
+        set.Add(3);
+        System.out.println(set.Contains(3));
+        set.Add(13);
+        set.Add(23);
+        set.Remove(13);
+        System.out.println(set.Contains(23));
+
+        common.intervalLine(times++);
+
+        set = new DoubleIntSet(9);
+        set.Add(3);
+        System.out.println(set.Contains(3));
+        set.Add(13);
+        set.Add(23);
+        set.Remove(13);
+        System.out.println(set.Contains(13));
+        System.out.println(set.Contains(23));
     }
 
     private static void test3() throws Exception{
@@ -792,6 +854,7 @@ public class test {
         h = new heap();
         h.show();
         h.removeByIndex(0);
+
     }
 
     private static void test0(){

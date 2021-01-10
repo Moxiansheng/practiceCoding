@@ -1,4 +1,4 @@
-package network;
+package network.TCP;
 
 import java.net.InetSocketAddress;
 

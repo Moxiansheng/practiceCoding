@@ -1,8 +1,11 @@
 package hashCode;
 
-public class singleIntSet7 extends singleIntSet6 {
+public class MultIntSet extends DivPrimeIntSet {
+    /**
+     * 乘法散列表
+     */
     private double A = Integer.MAX_VALUE / Math.pow(2, 32);
-    public singleIntSet7(int capacity) {
+    public MultIntSet(int capacity) {
         super(capacity);
     }
 

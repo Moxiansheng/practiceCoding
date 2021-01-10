@@ -42,14 +42,6 @@ public class SingleLinkedList <T> implements LinkedList <T>{
         return temp;
     }
 
-    private SingleListNode<T> getNode(T val){
-        temp = head;
-        for (int i = 0; i < length; i++) {
-            if(temp.getVal() == val) { return temp;}
-        }
-        return null;
-    }
-
     @Override
     public T addAtHead(T val) {
         return addAtIndex(val, 0);
@@ -97,7 +89,11 @@ public class SingleLinkedList <T> implements LinkedList <T>{
 
     @Override
     public boolean contains(T val) {
-        return getNode(val) == null;
+        temp = head;
+        for (int i = 0; i < length; i++) {
+            if(temp.getNext().getVal() == val) { return true;}
+        }
+        return false;
     }
 
     @Override

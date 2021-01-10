@@ -1,7 +1,11 @@
 package hashCode;
 
-public class singleIntSet6 extends singleIntSet5{
-    public singleIntSet6(int capacity)
+public class DivPrimeIntSet extends DivisionIntSet {
+    /**
+     * 质数除法散列法
+     */
+
+    public DivPrimeIntSet(int capacity)
     {
         int size = GetPrime(capacity);
         _values = new Object[size];
