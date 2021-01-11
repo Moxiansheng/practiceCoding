@@ -67,4 +67,23 @@ public class reflectedClass {
 
         return string;
     }
+
+    public static void main(String[] args) {
+        A a = new A();
+        System.out.println(A.m);
+    }
+}
+
+class A{
+    static int m = 100;
+    static{
+        System.out.println("static");
+        m = 300;
+    }
+
+
+
+    public A(){
+        System.out.println("no parameter initialization");
+    }
 }

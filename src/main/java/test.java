@@ -6,6 +6,7 @@ import DeepCopy.SerializableMethod.AddressM3;
 import DeepCopy.SerializableMethod.UserM3;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
+import com.sun.xml.internal.ws.developer.Serialization;
 import common.*;
 import designPattern.Proxy.*;
 import generic.*;
@@ -20,12 +21,14 @@ import sort.*;
 import dataStructure.*;
 import hashCode.*;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Target;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 public class test {
-    private static int type = 18;
+    private static int type = 2;
     /*
         0:  sort
         1:  heap
@@ -46,6 +49,7 @@ public class test {
         16. URL
         17. 值传递与引用传递
         18. 深copy与浅copy
+        19. Annotation
     */
 
     public static void main(String[] args) throws Exception{
@@ -93,7 +97,68 @@ public class test {
             test17();
         }else if(type == 18){
             test18();
+        }else if(type == 19){
+            test19();
         }
+    }
+
+    private static void test19() {
+        // inner annotation
+        @SuppressWarnings("all")
+        class innerAnnotation{
+            String str = "";
+            @Override
+            public String toString(){
+                return null;
+            }
+
+            @Deprecated
+            public void depPrint(){
+                System.out.println("Deprecated");
+            }
+
+
+        }
+
+        innerAnnotation iA = new innerAnnotation();
+        iA.depPrint();
+
+        /**
+         * @Override
+         * Indicates that a method declaration is intended to override a
+         * method declaration in a supertype.
+         *
+         * @Deprecated
+         * A program element annotated &#64;Deprecated is one that programmers
+         * are discouraged from using, typically because it is dangerous,
+         * or because a better alternative exists.
+         *
+         * @SuppressWarnings("参数")
+         * The set of warnings that are to be suppressed by the compiler in the
+         * annotated element.
+         */
+
+        // meta annotation
+
+        /**
+         * mete annotation
+         * 元注解，用于注解其它注解的注解
+         *
+         * @Target
+         * 用于描述注解的适用范围（即被描述的注解可以用在什么地方）
+         * @Retention
+         * 表示需要在什么级别保存该注释信息，用于描述注解的生命周期
+         * SOURCE<CLASS<RUNTIME
+         * @Documented
+         * 说明该注解将被包含在javadoc中
+         * @Inheriteed
+         * 说明子类可以继承父类中的该注解
+         *
+         * Example:
+         *     @Target(value = {ElementType.METHOD, ElementType.TYPE})
+         *     @Retention(RetentionPolicy.RUNTIME)
+         *     @interface myAnnotation{}
+         */
     }
 
     private static void test18() throws Exception{
@@ -973,6 +1038,132 @@ public class test {
         rc.setName(classPath);
         rc.setAuthor(classPath);
         System.out.println(rc.toString());
+
+        /**
+         * 哪些类型可以有class对象
+         * class interface [] enum annotation primitive type void
+         */
+        Class c1 = Object.class;
+        Class c2 = Comparable.class;
+        Class c3 = int[].class;
+        Class c4 = ElementType.class;
+        Class c5 = Override.class;
+        Class c6 = int.class;
+        Class c7 = void.class;
+
+        System.out.println(c1);
+        System.out.println(c2);
+        System.out.println(c3);
+        System.out.println(c4);
+        System.out.println(c5);
+        System.out.println(c6);
+        System.out.println(c7);
+
+        /**
+         * 类的加载分三步
+         *
+         * 加载：
+         * 将class文件字节码加载到内存中，
+         * 并将那些静态数据转换成方法区的运行时数据结构，
+         * 然后生成一个代表这个类的java.lang.Class对象
+         *
+         * 链接：
+         * 将Java类的二进制代码合并到JVM的运行状态之中的过程
+         * * 验证：确保加载的类信息符合JVM规范，没有安全方面的问题
+         * * 准备：正式为类变量（static）分配内存并设置类变量初始值，这些内存都在方法区中分配
+         * * 解析：虚拟机常量池内的符号引用（常量名）替换为直接引用（地址)的过程
+         *
+         * 初始化：
+         * * 执行类构造器<clinit>()方法的过程。类构造器<clinit>()方法是由编译器自动收集类中
+         * 所有类变量的赋值动作和静态代码块中的语句合并产生的。（类构造器时构造类对象的，不是
+         * 构造该类对象的构造器）
+         * * 当初始化一个类的时候，如果发现其父类还没有进行初始化，则需要先触发其父类的初始化
+         * * 虚拟机会保证一个类的<clinit>()方法在多线程环境中被正确加锁和同步
+         */
+
+        /**
+         * 什么时候会发生类初始化:
+         *
+         * 类的主动引用（一定会发生类的初始化）
+         * * 当虚拟机启动，先初始化main方法所在的类
+         * * new一个类的对象
+         * * 调用类的静态成员（除了final常量）和静态方法
+         * * 使用java.lang.reflect包的方法对类进行反射调用
+         * * 当初始化一个类，若父类未被初始化，则会先初始化父类
+         *
+         * 类的被动引用（不会发生类的初始化）
+         * * 当访问一个静态域时，只有真正声明这个域的类才会被初始化。如：当通过子类引用父类的
+         * 静态变量，不会导致子类初始化
+         * * 通过数组定义类的引用，不会触发此类的初始化
+         * * 引用常量不会触发此类的初始化（常量在连接阶段就存入调用类的常量池中）
+         */
+
+        // 获取系统类的加载器
+        ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
+        System.out.println(systemClassLoader);
+
+        // 获取系统类加载器的父类加载器 ==> 扩展类加载器
+        ClassLoader extensionClassLoader = systemClassLoader.getParent();
+        System.out.println(extensionClassLoader);
+
+        // 获取扩展类加载器的父类加载器 ==> 根加载器（c++） 无法直接获取
+        ClassLoader bootstrapClassLoader = extensionClassLoader.getParent();
+        System.out.println(bootstrapClassLoader);
+
+        // 获取自建类的加载器
+        ClassLoader selfBuildClassLoader = Class.forName("reflection.reflectedClass").getClassLoader();
+        System.out.println(selfBuildClassLoader);
+
+        // 获取jdk内置类的加载器
+        ClassLoader JDKInnerClassLoader = Class.forName("java.lang.Object").getClassLoader();
+        System.out.println(JDKInnerClassLoader);
+
+        // 如何获得系统类加载器可以加载的路径
+        System.out.println(System.getProperty("java.class.path"));
+        /**
+         * C:\Program Files\Java\jdk1.8.0_161\jre\lib\charsets.jar;
+         * C:\Program Files\Java\jdk1.8.0_161\jre\lib\deploy.jar;
+         * C:\Program Files\Java\jdk1.8.0_161\jre\lib\ext\access-bridge-64.jar;
+         * C:\Program Files\Java\jdk1.8.0_161\jre\lib\ext\cldrdata.jar;
+         * C:\Program Files\Java\jdk1.8.0_161\jre\lib\ext\dnsns.jar;
+         * C:\Program Files\Java\jdk1.8.0_161\jre\lib\ext\jaccess.jar;
+         * C:\Program Files\Java\jdk1.8.0_161\jre\lib\ext\jfxrt.jar;
+         * C:\Program Files\Java\jdk1.8.0_161\jre\lib\ext\localedata.jar;
+         * C:\Program Files\Java\jdk1.8.0_161\jre\lib\ext\nashorn.jar;
+         * C:\Program Files\Java\jdk1.8.0_161\jre\lib\ext\sunec.jar;
+         * C:\Program Files\Java\jdk1.8.0_161\jre\lib\ext\sunjce_provider.jar;
+         * C:\Program Files\Java\jdk1.8.0_161\jre\lib\ext\sunmscapi.jar;
+         * C:\Program Files\Java\jdk1.8.0_161\jre\lib\ext\sunpkcs11.jar;
+         * C:\Program Files\Java\jdk1.8.0_161\jre\lib\ext\zipfs.jar;
+         * C:\Program Files\Java\jdk1.8.0_161\jre\lib\javaws.jar;
+         * C:\Program Files\Java\jdk1.8.0_161\jre\lib\jce.jar;
+         * C:\Program Files\Java\jdk1.8.0_161\jre\lib\jfr.jar;
+         * C:\Program Files\Java\jdk1.8.0_161\jre\lib\jfxswt.jar;
+         * C:\Program Files\Java\jdk1.8.0_161\jre\lib\jsse.jar;
+         * C:\Program Files\Java\jdk1.8.0_161\jre\lib\management-agent.jar;
+         * C:\Program Files\Java\jdk1.8.0_161\jre\lib\plugin.jar;
+         * C:\Program Files\Java\jdk1.8.0_161\jre\lib\resources.jar;
+         * C:\Program Files\Java\jdk1.8.0_161\jre\lib\rt.jar;
+         * D:\IDEA projects\practiceCoding\target\classes;
+         * D:\Maven\maven-repository\org\apache\commons\commons-lang3\3.8.1\commons-lang3-3.8.1.jar;
+         * D:\Maven\maven-repository\com\google\code\gson\gson\2.8.2\gson-2.8.2.jar;
+         * D:\Maven\maven-repository\com\fasterxml\jackson\core\jackson-databind\2.9.5\jackson-databind-2.9.5.jar;
+         * D:\Maven\maven-repository\com\fasterxml\jackson\core\jackson-core\2.9.5\jackson-core-2.9.5.jar;
+         * D:\Maven\maven-repository\com\fasterxml\jackson\core\jackson-annotations\2.9.5\jackson-annotations-2.9.5.jar;
+         * D:\IntelliJ IDEA\IntelliJ IDEA 2019.1.3\lib\idea_rt.jar;
+         * C:\Users\墨\.IntelliJIdea2019.1\system\captureAgent\debugger-agent.jar
+         */
+
+        /**
+         * 双亲委派机制：
+         * 当某个类加载器需要加载某个.class文件时，它首先把这个任务委托给他的上级类加载器，
+         * 递归这个操作，如果上级的类加载器没有加载，自己才会去加载这个类
+         */
+
+        /**
+         * Object Relation Mapping
+         * 和数据库一同实现
+         */
     }
 
     private static void test1(){
