@@ -1,3 +1,5 @@
+[TOC]
+
 # Git&GitHub
 
 ## [Git](https://git-scm.com)

@@ -1,3 +1,5 @@
+[TOC]
+
 # [Maven](http://maven.apache.org/)
 
 ## 1. What is Maven?
