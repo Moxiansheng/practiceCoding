@@ -18,13 +18,11 @@
 
 [网络编程实战讲解](https://www.bilibili.com/video/BV1LJ411z7vY)
 
-[TCP实操](D:\IDEA projects\practiceCoding\src\main\java\network\TCP)
+[TCP实操](https://github.com/Moxiansheng/practiceCoding/tree/master/src/main/java/network/TCP)
 
-[UDP实操](D:\IDEA projects\practiceCoding\src\main\java\network\UDP)
+[UDP实操](https://github.com/Moxiansheng/practiceCoding/tree/master/src/main/java/network/UDP)
 
-[URL实操](D:\IDEA projects\practiceCoding\src\main\java\network\URL)
-
-[收藏夹](chrome://bookmarks/?id=643)
+[URL实操](https://github.com/Moxiansheng/practiceCoding/tree/master/src/main/java/network/URL)
 
 
 
@@ -36,35 +34,15 @@
 
 [视频笔记](D:\文档\学习\git&github\Git&GitHub.pdf)
 
-[项目实操](D:\IDEA projects\gitStudy)
-
 
 
 ## 项目管理工具
 
 ### Maven
 
-[原理与部分实操视频](https://www.bilibili.com/video/BV1TW411g7hP)
-
-[IDEA实操视频](https://www.bilibili.com/video/BV1Te411W7N6)
+[基础教学视频](https://www.bilibili.com/video/BV1TW411g7hP)
 
 [视频笔记](D:\IDEA projects\practiceCoding\maven\Maven课件、源码\Maven课件\尚硅谷_Maven_讲义.pdf)
 
-[MavenJava项目配置](D:\IDEA projects\mavenJava)
 
-[MavenWeb项目配置](D:\IDEA projects\mavenWeb)
-
-
-
-
-
-Java
-
-2020/1/11V
-将项目转为Maven项目
-值传递与引用传递
-装箱与自动装箱再理解
-深copy与浅copy
-注解与反射
-待做：Object Relation Mapping
 
