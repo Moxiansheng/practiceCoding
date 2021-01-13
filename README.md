@@ -32,7 +32,7 @@
 
 [原理与操作视频](https://www.bilibili.com/video/BV1pW411A7a5)
 
-[视频笔记](D:\文档\学习\git&github\Git&GitHub.pdf)
+[笔记](https://github.com/Moxiansheng/practiceCoding/blob/master/docs/git%26github/Git%26GitHub.md)
 
 
 
@@ -42,7 +42,7 @@
 
 [基础教学视频](https://www.bilibili.com/video/BV1TW411g7hP)
 
-[视频笔记](D:\IDEA projects\practiceCoding\maven\Maven课件、源码\Maven课件\尚硅谷_Maven_讲义.pdf)
+[笔记](https://github.com/Moxiansheng/practiceCoding/blob/master/docs/maven/Maven.md)
 
 
 
