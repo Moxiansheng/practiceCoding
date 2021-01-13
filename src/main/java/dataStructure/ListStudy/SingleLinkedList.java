@@ -1,4 +1,4 @@
-package dataStructure;
+package dataStructure.ListStudy;
 
 public class SingleLinkedList <T> implements LinkedList <T>{
     private int length = 0;

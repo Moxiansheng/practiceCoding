@@ -1,6 +1,6 @@
 package sort;
 
-import dataStructure.heap;
+import dataStructure.HeapStudy.heap;
 
 public class heapSort extends base{
     heap h = new heap();

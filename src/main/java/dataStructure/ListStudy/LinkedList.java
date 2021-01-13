@@ -1,4 +1,4 @@
-package dataStructure;
+package dataStructure.ListStudy;
 
 public interface LinkedList<T>{
     T getHead();

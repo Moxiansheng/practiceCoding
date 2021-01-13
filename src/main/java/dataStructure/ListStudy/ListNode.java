@@ -1,4 +1,4 @@
-package dataStructure;
+package dataStructure.ListStudy;
 
 public class ListNode <T>{
     private T val;

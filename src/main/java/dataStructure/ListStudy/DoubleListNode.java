@@ -1,6 +1,6 @@
-package dataStructure;
+package dataStructure.ListStudy;
 
-public class DoubleListNode<T> extends dataStructure.ListNode<T> {
+public class DoubleListNode<T> extends ListNode<T> {
     private DoubleListNode next = null;
     private DoubleListNode pre = null;
 

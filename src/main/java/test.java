@@ -6,8 +6,10 @@ import DeepCopy.SerializableMethod.AddressM3;
 import DeepCopy.SerializableMethod.UserM3;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
-import com.sun.xml.internal.ws.developer.Serialization;
 import common.*;
+import dataStructure.EnumStudy.Pizza;
+import dataStructure.HeapStudy.heap;
+import dataStructure.ListStudy.SingleLinkedList;
 import designPattern.Proxy.*;
 import generic.*;
 import lambda.*;
@@ -18,17 +20,14 @@ import network.URL.URLDownloader;
 import org.apache.commons.lang3.SerializationUtils;
 import reflection.*;
 import sort.*;
-import dataStructure.*;
 import hashCode.*;
 
 import java.lang.annotation.ElementType;
-import java.lang.annotation.Target;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 public class test {
-    private static int type = 2;
+    private static int type = 23;
+
     /*
         0:  sort
         1:  heap
@@ -50,6 +49,10 @@ public class test {
         17. 值传递与引用传递
         18. 深copy与浅copy
         19. Annotation
+        20. Collections
+        21. Enum
+        22. final
+        23. interned string pool
     */
 
     public static void main(String[] args) throws Exception{
@@ -99,7 +102,87 @@ public class test {
             test18();
         }else if(type == 19){
             test19();
+        }else if(type == 20){
+            test20();
+        }else if(type == 21){
+            test21();
+        }else if(type == 22){
+            test22();
+        }else if(type == 23){
+            test23();
         }
+    }
+
+    private static void test23() {
+        String str1 = new StringBuilder("hel").append("lo").toString();
+        String str="hello";
+        System.out.println(str == str1); // false
+        System.out.println(str1.intern() == str1);
+        System.out.println(str1.intern() == str);
+        String strs = "av";
+         str = new String(strs);
+        System.out.println(str.hashCode());
+        System.out.println(str == str.intern());
+
+        System.out.println(str == strs);
+        //str = str.intern();
+
+
+
+        System.out.println(str.intern() == strs.intern());
+        System.out.println(str.equals(strs));
+        System.out.println(str == strs);
+
+
+//        String a = new String("ab");
+//        String b = new String("ab");
+//        String c = "ab";
+//        String d = "a" + "b";
+//        String e = "b";
+//        String f = "a" + e;
+//
+//        System.out.println(b.intern() == a);
+//        System.out.println(b.intern() == c);
+//        System.out.println(b.intern() == d);
+//        System.out.println(b.intern() == f);
+//        System.out.println(b.intern() == a.intern());
+    }
+
+    private static void test22() {
+        String a = "hello2";
+        final String b = "hello";
+        String d = "hello";
+        String c = b + 2;
+        String e = d + 2;
+        System.out.println((a == c));
+        System.out.println((a == e));
+        System.out.println((b == d));
+    }
+
+    private static void test21() {
+        Pizza testPz = new Pizza();
+        testPz.setStatus(Pizza.PizzaStatus.READY);
+        System.out.println(testPz.isDeliverable());
+    }
+
+    private static void test20() {
+        int[] myArray = {1, 2, 3};
+        List myList = Arrays.asList(myArray);
+        //1
+        System.out.println(myList.size());
+        //数组地址值
+        System.out.println(myList.get(0));
+        //报错：ArrayIndexOutOfBoundsException
+        //System.out.println(myList.get(1));
+        int[] array = (int[]) myList.get(0);
+        //1
+        System.out.println(array[0]);
+        //运行时报错：UnsupportedOperationException
+        //myList.add(4);
+        //myList.remove(1);
+        //myList.clear();
+        //class java.util.Arrays$ArrayList
+        System.out.println(myList.getClass());
     }
 
     private static void test19() {
@@ -179,6 +262,7 @@ public class test {
          *   Method2 Override Clone()
          *   Object父类有个clone()的拷贝方法，不过它是protected类型的，我们需要重写它并修改为public类型。
          *   除此之外，子类还需要实现Cloneable接口来告诉JVM这个类是可以拷贝的。
+         *   Object本身没有实现Cloneable接口，所以不重写clone方法并且进行调用的话会发生CloneNotSupportedException异常
          */
         UserM2 userM2 = new UserM2(name, new AddressM2(city, country));
 
@@ -416,11 +500,17 @@ public class test {
 //        ch1.equals();
 //        bl1.equals();
 
-        // valueOf函数中Short，Byte，Integer，Long都是[-128，127]的缓存
-        // 但其中Integer的最大范围并没有定死，可通过继承重写，其余的则已写死
-        // Character也是缓存的常量池，但是范围是[0, 127]
-        // Float与Double都是新建对象，没有缓存常量池
-        // Boolean是两个静态对象，返回其中之一
+        /**
+         *          valueOf函数中Short，Byte，Integer，Long都是[-128，127]的缓存
+         *          但其中Integer的最大范围并没有定死，#可通过继承重写#，其余的则已写死
+         *          # # 内有误，继承并不能重写，而是通过修改配置文件，并与127取最大值，
+         *          然后与(Integer.MAX_VALUE-128-1)取最小值进行获取，但确实没有写死
+         *          sun.misc.VM.getSavedProperty("java.lang.Integer.IntegerCache.high");
+         *
+         *          Character也是缓存的常量池，但是范围是[0, 127]
+         *          Float与Double都是新建对象，没有缓存常量池
+         *          Boolean是两个静态对象，返回其中之一
+         */
         System.out.println(Short.valueOf(s1));
         System.out.println(Byte.valueOf(bt1));
         System.out.println(Integer.valueOf(it1));
@@ -1025,6 +1115,45 @@ public class test {
         rc2.setName(a);
         rc2.setAuthor(b);
         System.out.println(rc1.equals(rc2));
+
+        /**
+         * hashcode与equals之间的关系
+         *
+         * 1.当不是对类创建散列表时，此处的散列表指HashSet，HashTable，HashMap等本质为散列表的数据结构，
+         * hashcode与equals是不会有关联的，因为对两个对象判断相等的时候，是仅仅通过equals进行判断的，
+         * 不会使用到hashcode，因此，而这没有关联
+         *
+         */
+        HashCodeEquals hce1 = new HashCodeEquals("a",1);
+        HashCodeEquals hce2 = new HashCodeEquals("a",1);
+        HashCodeEquals hce3 = new HashCodeEquals("b",1);
+        System.out.printf("hce1.equals(hce2) : %s; hce1(%d) hce2(%d)\n", hce1.equals(hce2), hce1.hashCode(), hce2.hashCode());
+        System.out.printf("hce1.equals(hce3) : %s; hce1(%d) hce3(%d)\n", hce1.equals(hce3), hce1.hashCode(), hce3.hashCode());
+
+        /**
+         * 2.当是对类创建散列表时，要对两个对象判断相等（比如add，或者contains操作），分为两个步骤，首先，
+         * 是对新对象求hashcode，倘若此hashcode对应的位置为空，即先前没有对象与此对象有相同的hashcode，
+         * 那么，此对象没有与其相等的对象，便直接操作即可，不会再调用equals；若此hashcode位置处已存在对象，
+         * 那就是发生了hash重装，可是hashcode相等不一定是对象相同，所以需要继续调用equals进行判断相等与否。
+         *
+         * 在第二种情况时，使用到了两个前置条件，又或者定理推论。
+         * （1）hashcode不同，则对象一定不同
+         * （2）hashcode相同，对象不一定相同
+         */
+
+        HashSet<HashCodeEquals> hs = new HashSet();
+        hs.add(hce1);
+        hs.add(hce2);
+        hs.add(hce3);
+        System.out.println(hs);
+
+        /**
+         * 结果中同时存在hce1与hce2，证明判断相等出现了问题
+         *
+         * 因此仅仅重写equals是不足以支撑散列表相同判断的，所以，还需要重写hashcode函数
+         *
+         * 重写hashcode后，上述散列表操作中就不会同时存在hce1与hce2了
+         */
     }
 
     private static void test2() throws Exception{

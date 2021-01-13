@@ -1,4 +1,4 @@
-package dataStructure;
+package dataStructure.HeapStudy;
 
 import java.util.Arrays;
 import common.common;

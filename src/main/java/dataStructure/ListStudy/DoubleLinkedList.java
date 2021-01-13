@@ -1,6 +1,6 @@
-package dataStructure;
+package dataStructure.ListStudy;
 
-public class DoubleLinkedList<T> implements dataStructure.LinkedList<T> {
+public class DoubleLinkedList<T> implements LinkedList<T> {
 
     public T getHead() {
         return null;

@@ -1,4 +1,4 @@
-package dataStructure;
+package dataStructure.ListStudy;
 
 public class SingleListNode<T> extends ListNode <T>{
     private SingleListNode next = null;

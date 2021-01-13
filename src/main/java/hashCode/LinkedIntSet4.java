@@ -1,7 +1,7 @@
 package hashCode;
 
 
-import dataStructure.SingleLinkedList;
+import dataStructure.ListStudy.SingleLinkedList;
 
 public class LinkedIntSet4 extends singleIntSet3{
     /**
