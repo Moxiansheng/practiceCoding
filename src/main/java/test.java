@@ -26,7 +26,7 @@ import java.lang.annotation.ElementType;
 import java.util.*;
 
 public class test {
-    private static int type = 23;
+    private static int type = 7;
 
     /*
         0:  sort
@@ -935,26 +935,26 @@ public class test {
 //            new Thread(tt4, "turtle").start();
 
         // c-s -- TCP
-//            String ipAdd = "127.0.0.1";
-//            int port = 9999;
-//            String sendMessage = "D:\\IDEA projects\\practiceCoding\\src\\resources\\photo.jpg";
-//
-//            ThreadServerTCP threadServer = new ThreadServerTCP(port);
-//            new Thread(threadServer).start();
-//
-//            ThreadClientTCP threadClient = new ThreadClientTCP(ipAdd, port, sendMessage);
-//            new Thread(threadClient).start();
-
-        // s-r -- UDP 暂时有问题
             String ipAdd = "localhost";
-            int port = 9090;
+            int port = 10001;
             String sendMessage = "D:\\IDEA projects\\practiceCoding\\src\\resources\\photo.jpg";
 
-            ThreadReceiveUDP receiveUDP = new ThreadReceiveUDP(port, ipAdd);
-            new Thread(receiveUDP);
+            ThreadServerTCP threadServer = new ThreadServerTCP(port);
+            new Thread(threadServer).start();
 
-            ThreadSendUDP sendUDP = new ThreadSendUDP(9082, ipAdd, port);
-            new Thread(sendUDP);
+            ThreadClientTCP threadClient = new ThreadClientTCP(ipAdd, port, sendMessage);
+            new Thread(threadClient).start();
+
+        // s-r -- UDP 暂时有问题
+//            String ipAdd = "localhost";
+//            int port = 9090;
+//            String sendMessage = "D:\\IDEA projects\\practiceCoding\\src\\resources\\photo.jpg";
+//
+//            ThreadReceiveUDP receiveUDP = new ThreadReceiveUDP(port, ipAdd);
+//            new Thread(receiveUDP);
+//
+//            ThreadSendUDP sendUDP = new ThreadSendUDP(9082, ipAdd, port);
+//            new Thread(sendUDP);
 
 //        // Callable
 //        testThread5 tt5 = new testThread5(1);

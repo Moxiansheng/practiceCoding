@@ -11,7 +11,8 @@ public class ThreadClientTCP extends ClientServerTCP implements Runnable{
     @Override
     public void run() {
         try {
-            sendFile();
+            Thread.sleep(10);
+            sendMessage();
         } catch (Exception e) {
             e.printStackTrace();
         }

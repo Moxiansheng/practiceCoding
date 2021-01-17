@@ -10,7 +10,7 @@ public class ThreadServerTCP extends ClientServerTCP implements Runnable {
     @Override
     public void run() {
         try {
-            getFile("D:\\IDEA projects\\practiceCoding\\src\\resources\\received.jpg");
+            getMessage();
         } catch (Exception e) {
             e.printStackTrace();
         }

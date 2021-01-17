@@ -118,6 +118,9 @@ public class ClientServerTCP {
 
     public String getMessage() throws Exception {
         openServer();
+        // 初始设置port 10001
+        System.out.println(serverSocket.getLocalPort()); // 监听port 10001
+        System.out.println(socket.getLocalPort()); // 连接port 10001
         is = socket.getInputStream();
         baos = new ByteArrayOutputStream();
         String res = null;
