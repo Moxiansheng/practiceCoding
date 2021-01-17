@@ -6,17 +6,13 @@
 
 ## 操作系统
 
-
+[笔记](https://github.com/Moxiansheng/practiceCoding/blob/master/docs/os/operation%20system.md)
 
 ## 数结与算法
 
 
 
 ## 计算机网络
-
-[常见知识总结](https://github.com/Snailclimb/JavaGuide/blob/master/docs/network/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93.md)
-
-[常见面试题](https://github.com/Snailclimb/JavaGuide/blob/master/docs/network/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C.md)
 
 [网络编程实战讲解](https://www.bilibili.com/video/BV1LJ411z7vY)
 
@@ -26,7 +22,7 @@
 
 [URL](https://github.com/Moxiansheng/practiceCoding/tree/master/src/main/java/network/URL)
 
-
+[笔记](https://github.com/Moxiansheng/practiceCoding/blob/master/docs/network/network.md)
 
 ## 版本控制工具
 
