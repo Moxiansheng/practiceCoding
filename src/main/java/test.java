@@ -1,3 +1,5 @@
+import dataStructure.heapStudy.heap;
+import dataStructure.listStudy.DoubleLinkedList;
 import dataStructure.queueStudy.*;
 import dataStructure.treeStudy.BinaryTree;
 import deepCopy.CloneMethod.AddressM2;
@@ -10,8 +12,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import common.*;
 import dataStructure.enumStudy.*;
-import dataStructure.heapStudy.*;
-import dataStructure.listStudy.*;
 import dataStructure.stackStudy.*;
 import designPattern.Proxy.Agent;
 import designPattern.Proxy.ProxyFactory;
@@ -31,7 +31,6 @@ import hashCode.*;
 
 import java.lang.annotation.ElementType;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class test {
     private static int type = 28;
