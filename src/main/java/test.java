@@ -1,17 +1,24 @@
-import DeepCopy.CloneMethod.AddressM2;
-import DeepCopy.CloneMethod.UserM2;
-import DeepCopy.ConstructorMethod.AddressM1;
-import DeepCopy.ConstructorMethod.UserM1;
-import DeepCopy.SerializableMethod.AddressM3;
-import DeepCopy.SerializableMethod.UserM3;
+import dataStructure.queueStudy.*;
+import dataStructure.treeStudy.BinaryTree;
+import deepCopy.CloneMethod.AddressM2;
+import deepCopy.CloneMethod.UserM2;
+import deepCopy.ConstructorMethod.AddressM1;
+import deepCopy.ConstructorMethod.UserM1;
+import deepCopy.SerializableMethod.AddressM3;
+import deepCopy.SerializableMethod.UserM3;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import common.*;
-import dataStructure.EnumStudy.Pizza;
-import dataStructure.HeapStudy.heap;
-import dataStructure.ListStudy.SingleLinkedList;
-import designPattern.Proxy.*;
+import dataStructure.enumStudy.*;
+import dataStructure.heapStudy.*;
+import dataStructure.listStudy.*;
+import dataStructure.stackStudy.*;
+import designPattern.Proxy.Agent;
+import designPattern.Proxy.ProxyFactory;
+import designPattern.Proxy.StaticProxy;
+import designPattern.Proxy.Work;
 import generic.*;
+import invCov.*;
 import lambda.*;
 import mutilThread.*;
 import network.TCP.ClientServerTCP;
@@ -24,9 +31,10 @@ import hashCode.*;
 
 import java.lang.annotation.ElementType;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class test {
-    private static int type = 7;
+    private static int type = 28;
 
     /*
         0:  sort
@@ -53,6 +61,11 @@ public class test {
         21. Enum
         22. final
         23. interned string pool
+        24. Stack
+        25. Queue
+        26. Tree
+        27. forEach
+        28. Map
     */
 
     public static void main(String[] args) throws Exception{
@@ -110,42 +123,142 @@ public class test {
             test22();
         }else if(type == 23){
             test23();
+        }else if(type == 24){
+            test24();
+        }else if(type == 25){
+            test25();
+        }else if(type == 26){
+            test26();
+        }else if(type == 27){
+            test27();
+        }else if(type == 28){
+            test28();
         }
     }
 
+    private static void test28() {
+        int cap = 1;
+        HashMap<String, Integer> hm = new HashMap<>(cap);
+        hm.put("臭雪雪", 2);
+        hm.put("香哥哥", 1);
+
+    }
+
+    private static void test27() {
+        ArrayList<String> list = new ArrayList<>();
+        list.add("1");
+        list.add("2");
+        for (String s : list) {
+            if("1".equals(s)){
+                list.remove(s);
+            }
+        }
+        for (String s : list) {
+            System.out.println(s);
+        }
+    }
+
+    private static void test26() {
+        BinaryTree myTree = new BinaryTree();
+        for (int i = 0; i < 10; i++) {
+            myTree.insert(BinaryTree.NOT_RECURSION, i);
+        }
+        myTree.showTree();
+    }
+
+    private static void test25() {
+        // ArrayQueue<Integer> myQueue = new ArrayQueue();
+        LinkedListQueue<Integer> myQueue = new LinkedListQueue();
+        myQueue.offer(1);
+        myQueue.offer(2);
+        myQueue.offer(3);
+        myQueue.offer(4);
+        myQueue.offer(5);
+        myQueue.offer(6);
+        myQueue.offer(7);
+        myQueue.offer(8);
+        System.out.println(myQueue.peek());//8
+        System.out.println(myQueue.getLen());//8
+        for (int i = 0; i < 8; i++) {
+            System.out.println(myQueue.poll());
+        }
+        System.out.println(myQueue.isEmpty());//true
+        myQueue.poll();
+    }
+
+    private static void test24() {
+        // ArrayStack<Integer> myStack = new ArrayStack(3);
+        LinkedListStack<Integer> myStack = new LinkedListStack();
+        myStack.push(1);
+        myStack.push(2);
+        myStack.push(3);
+        myStack.push(4);
+        myStack.push(5);
+        myStack.push(6);
+        myStack.push(7);
+        myStack.push(8);
+        System.out.println(myStack.peek());//8
+        System.out.println(myStack.size());//8
+        for (int i = 0; i < 8; i++) {
+            System.out.println(myStack.pop());
+        }
+        System.out.println(myStack.isEmpty());//true
+        myStack.pop();
+    }
+
     private static void test23() {
-        String str1 = new StringBuilder("hel").append("lo").toString();
-        String str="hello";
-        System.out.println(str == str1); // false
-        System.out.println(str1.intern() == str1);
-        System.out.println(str1.intern() == str);
-        String strs = "av";
-         str = new String(strs);
-        System.out.println(str.hashCode());
-        System.out.println(str == str.intern());
-
-        System.out.println(str == strs);
-        //str = str.intern();
-
-
-
-        System.out.println(str.intern() == strs.intern());
-        System.out.println(str.equals(strs));
-        System.out.println(str == strs);
-
-
-//        String a = new String("ab");
-//        String b = new String("ab");
-//        String c = "ab";
-//        String d = "a" + "b";
-//        String e = "b";
-//        String f = "a" + e;
+//        String a = "abc";
+//        String b = new String("abc");
+//        String c = b.intern();
+//        System.out.println(a == b);
+//        System.out.println(b == c);
+//        System.out.println(c == a);
 //
-//        System.out.println(b.intern() == a);
-//        System.out.println(b.intern() == c);
-//        System.out.println(b.intern() == d);
-//        System.out.println(b.intern() == f);
-//        System.out.println(b.intern() == a.intern());
+//        String d = a + c;
+//        String e = a + b;
+//        String f = b + b;
+//        String g = "abcabc";
+//        String h = "abc" + "abc";
+//        System.out.println(d == e);
+//        System.out.println(f == e);
+//        System.out.println(d == f);
+//
+//        System.out.println(g == d);
+//        System.out.println(g == e);
+//        System.out.println(g == f);
+//        System.out.println(g == h);
+
+//        String str1 = new StringBuilder("hel").append("lo").toString();
+//        String str="hello";
+//        System.out.println(str == str1); // false
+//        System.out.println(str1.intern() == str1);
+//        System.out.println(str1.intern() == str);
+//        String strs = "av";
+//        str = new String(strs);
+//        System.out.println(str.hashCode());
+//        System.out.println(str == str.intern());
+//
+//        System.out.println(str == strs);
+//        System.out.println(strs == str.intern());
+//
+//
+//        System.out.println(str.intern() == strs.intern());
+//        System.out.println(str.equals(strs));
+//        System.out.println(str == strs);
+
+
+        String a = new String("ab");
+        String b = new String("ab");
+        String c = "ab";
+        String d = "a" + "b";
+        String e = "b";
+        String f = "a" + e;
+
+        System.out.println(b.intern() == a);
+        System.out.println(b.intern() == c);
+        System.out.println(b.intern() == d);
+        System.out.println(b.intern() == f); // false "a" + e自动触发了"a"的装箱操作，最终生成的是对象的引用。
+        System.out.println(b.intern() == a.intern());
     }
 
     private static void test22() {
@@ -345,18 +458,19 @@ public class test {
     }
 
     private static void test14() {
-        SingleLinkedList<Double> sll = new SingleLinkedList<Double>();
-        System.out.println(sll.addAtHead(2.1));
-        System.out.println(sll.addAtTail(3.2));
-        System.out.println(sll.addAtIndex(2.9, 1));
-        System.out.println(sll.get(-1));
-        System.out.println(sll.get(3));
-        System.out.println(sll.get(0));
-        System.out.println(sll.delIndex(-1));
-        System.out.println(sll.get(0));
-        System.out.println(sll.getHead());
-        System.out.println(sll.delIndex(3));
-        System.out.println(sll.getTail());
+        // SingleLinkedList<Double> ll = new SingleLinkedList<>();
+        DoubleLinkedList<Double> ll = new DoubleLinkedList<>();
+        System.out.println(ll.addAtHead(2.1));
+        System.out.println(ll.addAtTail(3.2));
+        System.out.println(ll.addAtIndex(2.9, 1));
+        System.out.println(ll.get(-1));
+        System.out.println(ll.get(3));
+        System.out.println(ll.get(0));
+        System.out.println(ll.delIndex(-1));
+        System.out.println(ll.get(0));
+        System.out.println(ll.getHead());
+        System.out.println(ll.delIndex(3));
+        System.out.println(ll.getTail());
     }
 
     private static void test13() {
@@ -565,62 +679,6 @@ public class test {
         // 赋值时不可以逆变
 //        num = new Object(); // false
 
-        class plant{
-
-        }
-
-        class Fruit extends plant{
-            public Number fun(Number o){
-                return 0;
-            }
-        }
-
-        class Apple extends Fruit{
-            // 返回值可以协变
-            @Override
-            public Integer fun(Number o){
-                return o.intValue();
-            }
-
-            // 返回值不能逆变 报错
-//            @Override
-//            public Object fun(Number o){
-//                return o;
-//            }
-
-
-            // 参数（输入值）可以协变，
-            // 但是被认为是重载，
-            // 而非重写，
-            // 故不能带@Override
-//            @Override
-            public Number fun(Integer o){
-                return o;
-            }
-
-            // 参数（输入值）可以逆变，
-            // 但是被认为是重载，
-            // 而非重写，
-            // 故不能带@Override
-//            @Override
-            public Number fun(Object o){
-                return 0; // 这里看作是赋值的协变，即Number resources = 0;return resources;
-            }
-
-            /**
-             * 上两种总结起来就是，不能实现参数值的协变与逆变
-             * 强行实现，只能算作重载。
-             */
-        }
-
-        class redApple extends Apple{
-
-        }
-
-        class smallRedApple extends redApple{
-
-        }
-
         Fruit f = new Fruit();
         // 左边引用的类型是右边函数返回值类型的基类型，算是返回值赋值的协变
         Object obj = f.fun(0); // correct
@@ -700,7 +758,7 @@ public class test {
         ArrayList<Apple> list1 = new ArrayList<Apple>();
         // 传入父类 逆变了 不能逆变
 //        list1.add(new Fruit()); // error
-        list1.add(new redApple());
+        list1.add(new RedApple());
         ArrayList<? extends Fruit> list2 = list1; // correct
         // 传入父类
 //        list2.add(new Object()); // error
@@ -712,7 +770,7 @@ public class test {
 //        list2.add(new smallRedApple()); // error
         // 什么都传不进去了
         Object o1 = list2.get(0); // 赋值协变
-        plant p1 = list2.get(0); // 赋值协变
+        Plant p1 = list2.get(0); // 赋值协变
         Fruit f1 = list2.get(0); // 正常赋值
 //        Apple a2 = list2.get(0); // error 赋值不能逆变
         System.out.println(" " + o1.getClass() + " ");
@@ -731,28 +789,31 @@ public class test {
         ArrayList<Apple> list3 = new ArrayList<Apple>();
         // 算是参数赋值协变
         list3.add(new Apple());
-        list3.add(new redApple());
+        list3.add(new RedApple());
         // 通过? super Number使其能初始化逆变
-        List<? super redApple> list4 = list3;
+        ArrayList<? super RedApple> list4 = list3;
         System.out.println(list4.getClass());
         // 传自己
-        list4.add(new redApple()); // correct
+        list4.add(new RedApple()); // correct
         // 传父类
 //        list4.add(new Apple()); // error
 //        list4.add(new Object()); // error
         // 传子类
-        list4.add(new smallRedApple());
+        list4.add(new SmallRedApple());
         // 啥也返回不出了
-//        plant p2 = list4.get(0); // error
+//        Plant p2 = list4.get(0); // error
 //        Fruit f2 = list4.get(0); // error
 //        Apple a2 = list4.get(0); // error
-//        redApple ra2 = list4.get(0); // error
-//        smallRedApple sra2 = list4.get(0); // error
-        Object obj1 = list4.get(1);
-        System.out.println(obj1.getClass());
+//        RedApple ra2 = list4.get(0); // error
+//        SmallRedApple sra2 = list4.get(0); // error
+        System.out.println(list4.get(0).getClass());
         /**
          * ? super redApple使其在初始化时,可以逆变,
          * 即可以指向以其父类Apple,也就是super redApple的类,初始化的列表
+         *
+         * 这里类似于前面对? super Number的分析，参数要求(-∞, Number]
+         * 想要有对象能承载其中的返回，必须是(-∞, Number]中
+         * 所有类的父类才能承载，也就只有Object能承载了
          *
          * input:[Number, ∞)
          * inner:[Number, ∞)
@@ -906,9 +967,17 @@ public class test {
     }
 
     private static void test8(){
-        //static proxy
-        staticProxy proxy = new staticProxy(new agent());
+        // static proxy
+        StaticProxy proxy = new StaticProxy(new Agent());
         proxy.happyMarry();
+
+        // jdk dynamic proxy
+        Work work = (Work) ProxyFactory.getJDKProxy(new Agent());
+        work.happyMarry();
+
+        // cglib dynamic proxy
+        Agent agent = (Agent) ProxyFactory.getCGLIBProxy(Agent.class);
+        agent.happyMarry();
     }
 
     private static void test7() throws Exception{
@@ -1269,7 +1338,7 @@ public class test {
          * C:\Program Files\Java\jdk1.8.0_161\jre\lib\jfr.jar;
          * C:\Program Files\Java\jdk1.8.0_161\jre\lib\jfxswt.jar;
          * C:\Program Files\Java\jdk1.8.0_161\jre\lib\jsse.jar;
-         * C:\Program Files\Java\jdk1.8.0_161\jre\lib\management-agent.jar;
+         * C:\Program Files\Java\jdk1.8.0_161\jre\lib\management-Agent.jar;
          * C:\Program Files\Java\jdk1.8.0_161\jre\lib\plugin.jar;
          * C:\Program Files\Java\jdk1.8.0_161\jre\lib\resources.jar;
          * C:\Program Files\Java\jdk1.8.0_161\jre\lib\rt.jar;
@@ -1280,7 +1349,7 @@ public class test {
          * D:\Maven\maven-repository\com\fasterxml\jackson\core\jackson-core\2.9.5\jackson-core-2.9.5.jar;
          * D:\Maven\maven-repository\com\fasterxml\jackson\core\jackson-annotations\2.9.5\jackson-annotations-2.9.5.jar;
          * D:\IntelliJ IDEA\IntelliJ IDEA 2019.1.3\lib\idea_rt.jar;
-         * C:\Users\墨\.IntelliJIdea2019.1\system\captureAgent\debugger-agent.jar
+         * C:\Users\墨\.IntelliJIdea2019.1\system\captureAgent\debugger-Agent.jar
          */
 
         /**
