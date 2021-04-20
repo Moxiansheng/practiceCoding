@@ -31,9 +31,15 @@ import hashCode.*;
 
 import java.lang.annotation.ElementType;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.AbstractQueuedSynchronizer;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.LockSupport;
 
 public class test {
-    private static int type = 28;
+    private static int type = 11;
 
     /*
         0:  sort
@@ -65,6 +71,7 @@ public class test {
         26. Tree
         27. forEach
         28. Map
+        29. leetcode
     */
 
     public static void main(String[] args) throws Exception{
@@ -132,7 +139,53 @@ public class test {
             test27();
         }else if(type == 28){
             test28();
+        }else if(type == 29){
+            test29();
         }
+    }
+
+    private static void test29() {
+        int[] height = {8,8,1,5,6,2,5,3,3,9};
+        int res = 0, len = height.length - 1, i = 0;
+        if(len > 1){
+            boolean trend = true; // false: down; true: up
+            LinkedList<Integer> val = new LinkedList();
+            LinkedList<Integer> idx = new LinkedList();
+            for(; i < height.length && height[i] <= height[i + 1]; i++);
+            for(; len >= 0 && height[len] <= height[len - 1]; len--);
+            while(i < len){
+                if(height[i] > height[i + 1] && trend){
+                    val.add(height[i]);
+                    idx.add(i);
+                    trend = false;
+                }else if(height[i] < height[i + 1] && !trend){
+                    trend = true;
+                }
+                i++;
+            }
+            val.add(height[i]);
+            idx.add(i);
+            for(i = 1; i < val.size() - 1; ){
+                if(val.get(i - 1) >= val.get(i) && val.get(i + 1) >= val.get(i)){
+                    val.remove(i);
+                    idx.remove(i);
+                    if(i > 1){
+                        i--;
+                    }
+                }else{
+                    i++;
+                }
+            }
+            for(i = 0; i < val.size() - 1; i++){
+                int temp = Math.min(val.get(i), val.get(i + 1));
+                for(int j = idx.get(i) + 1; j < idx.get(i + 1); j++){
+                    if(height[j] < temp){
+                        res += temp - height[j];
+                    }
+                }
+            }
+        }
+        System.out.println(res);
     }
 
     private static void test28() {
@@ -295,6 +348,17 @@ public class test {
         //myList.clear();
         //class java.util.Arrays$ArrayList
         System.out.println(myList.getClass());
+
+        ArrayList<String> arrayList = new ArrayList<>(0);
+        System.out.println(arrayList.size());
+        arrayList.add("Java");
+        System.out.println(arrayList.size());
+
+        HashMap<String, String> hashMap = new HashMap<>(1);
+        hashMap.put("A","vb");
+        hashMap.put("c","vb");
+
+
     }
 
     private static void test19() {
@@ -799,12 +863,19 @@ public class test {
 //        list4.add(new Object()); // error
         // 传子类
         list4.add(new SmallRedApple());
-        // 啥也返回不出了
-//        Plant p2 = list4.get(0); // error
-//        Fruit f2 = list4.get(0); // error
-//        Apple a2 = list4.get(0); // error
-//        RedApple ra2 = list4.get(0); // error
-//        SmallRedApple sra2 = list4.get(0); // error
+        // 啥也返回不出了(可以强转为自己和父类）
+        Object temp = list4.get(0);
+        Plant p2 = (Plant)list4.get(0); // error
+        Fruit f2 = (Fruit)list4.get(0); // error
+        Apple a2 = (Apple)list4.get(0); // error
+        //RedApple ra2 = (RedApple) list4.get(0); // error
+        //SmallRedApple sra2 = (SmallRedApple)list4.get(0); // error
+        System.out.println(temp);
+        System.out.println(p2);
+        System.out.println(f2);
+        System.out.println(a2);
+//        System.out.println(ra2);
+//        System.out.println(sra2);
         System.out.println(list4.get(0).getClass());
         /**
          * ? super redApple使其在初始化时,可以逆变,

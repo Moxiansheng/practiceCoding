@@ -2,69 +2,11 @@
 
 提起HotSpot VM，相信所有Java程序员都知道，它是Sun JDK和OpenJDK中所带的虚拟机，也是目前使用范围最广的Java虚拟机。但不一定所有人都知道的是，这个目前看起来“血统纯正”的虚拟机在最初并非由Sun公司开发，而是由一家名为“Longview Technologies”的小公司设计的；甚至这个虚拟机最初并非是为Java语言而开发的，它来源于Strongtalk VM，而这款虚拟机中相当多的技术又是来源于一款支持Self语言实现“达到C语言50%以上的执行效率”的目标而设计的虚拟机，Sun公司注意到了这款虚拟机在JIT编译上有许多优秀的理念和实际效果，在1997年收购了Longview Technologies公司，从而获得了HotSpot VM。
 
-HotSpot VM既继承了Sun之前两款商用虚拟机的优点（如前面提到的准确式内存管理），也有许多自己新的技术优势，如它名称中的HotSpot指的就是它的热点代码探测技术（其实两个VM基本上是同时期的独立产品，HotSpot还稍早一些，HotSpot一开始就是准确式GC，而Exact VM之中也有与HotSpot几乎一样的热点探测。为了Exact VM和HotSpot VM哪个成为Sun主要支持的VM产品，在Sun公司内部还有过争论，HotSpot打败Exact并不能算技术上的胜利），HotSpot VM的热点代码探测能力可以通过执行计数器找出最具有编译价值的代码，然后通知JIT编译器以方法为单位进行编译。如果一个方法被频繁调用，或方法中有效循环次数很多，将会分别触发标准编译和OSR（栈上
-替换）编译动作。通过编译器与解释器恰当地协同工作，可以在最优化的程序响应时间与最佳执行性能中取得平衡，而且无须等待本地代码输出才能执行程序，即时编译的时间压力也相对减小，这样有助于引入更多的代码优化技术，输出质量更高的本地代码。
+HotSpot VM既继承了Sun之前两款商用虚拟机的优点（如前面提到的准确式内存管理），也有许多自己新的技术优势，如它名称中的HotSpot指的就是它的热点代码探测技术（其实两个VM基本上是同时期的独立产品，HotSpot还稍早一些，HotSpot一开始就是准确式GC，而Exact VM之中也有与HotSpot几乎一样的热点探测。为了Exact VM和HotSpot VM哪个成为Sun主要支持的VM产品，在Sun公司内部还有过争论，HotSpot打败Exact并不能算技术上的胜利），HotSpot VM的热点代码探测能力可以通过执行计数器找出最具有编译价值的代码，然后通知JIT编译器以方法为单位进行编译。如果一个方法被频繁调用，或方法中有效循环次数很多，将会分别触发标准编译和OSR（栈上替换）编译动作。通过编译器与解释器恰当地协同工作，可以在最优化的程序响应时间与最佳执行性能中取得平衡，而且无须等待本地代码输出才能执行程序，即时编译的时间压力也相对减小，这样有助于引入更多的代码优化技术，输出质量更高的本地代码。
 
 在2006年的JavaOne大会上，Sun公司宣布最终会把Java开源，并在随后的一年，陆续将JDK的各个部分（其中当然也包括了HotSpot VM）在GPL协议下公开了源码，并在此基础上建立了OpenJDK。这样，HotSpot VM便成为了Sun JDK和OpenJDK两个实现极度接近的JDK项目的共同虚拟机。
 
 在2008年和2009年，Oracle公司分别收购了BEA公司和Sun公司，这样Oracle就同时拥有了两款优秀的Java虚拟机：JRockit VM和HotSpot VM。Oracle公司宣布在不久的将来（大约应在发布JDK 8的时候）会完成这两款虚拟机的整合工作，使之优势互补。整合的方式大致上是在HotSpot的基础上，移植JRockit的优秀特性，譬如使用JRockit的垃圾回收器与MissionControl服务，使用HotSpot的JIT编译器与混合的运行时系统。
-
-
-
-## 对象的内存布局
-
-- ### 对象头（64位机器）
-
-  > **Mark Word 64bits**
-  >
-  > > | 锁状态/gc | -                             | -           | -        | -     | 偏向锁标志位1bit | 锁标志位2bit |
-  > > | --------- | ----------------------------- | ----------- | -------- | ----- | ---------------- | ------------ |
-  > > | 无锁      | unused:25                     | hashcode:31 | unused:1 | age:4 | 0                | 01           |
-  > > | 偏向锁    | thread:54                     | epoch:2     | unused:1 | age:4 | 1                | 01           |
-  > > | 轻量级锁  | ptr_to_lock_record:62         | -           | -        | -     | -                | 00           |
-  > > | 重量级锁  | ptr_to_heavyweight_monitor:62 | -           | -        | -     | -                | 10           |
-  > > | gc标记    | -                             | -           | -        | -     | -                | 11           |
-  > >
-  > > **age**：4位的Java对象年龄。在GC中，如果对象在Survivor区复制一次，年龄增加1。当对象达到设定的阈值时，将会晋升到老年代。默认情况下，并行GC的年龄阈值为15，并发GC的年龄阈值为6。由于age只有4位，所以最大值为15，这就是`-XX:MaxTenuringThreshold`选项最大值为15的原因。
-  > >
-  > > **hashcode**：31位的对象标识Hash码，采用延迟加载技术。调用方法`System.identityHashCode()`计算，并会将结果写到该对象头中。当对象被锁定时，该值会移动到管程Monitor中。
-  > >
-  > > **thread**：持有偏向锁的线程ID
-  > >
-  > > **epoch**：偏向时间戳
-  > >
-  > > **ptr_to_lock_record**：指向栈中所记录的指针
-  > >
-  > > **ptr_to_heavyweight_monitor**：指向管程Monitor的指针
-  > >
-  > > *只有在锁标志位为01的时候，才会去看偏向锁标志位是0还是1*
-  >
-  > 
-  >
-  > **Klass pointer 64bits-uncompressed/32bits-compressed(default)**
-  >
-  > > 这一部分用于存储对象的类型指针，该指针指向它的类元数据，JVM通过这个指针确定对象是哪个类的实例。该指针的位长度为JVM的一个字大小，即32位的JVM为32位，64位的JVM为64位。
-  > > 如果应用的对象过多，使用64位的指针将浪费大量内存，统计而言，64位的JVM将会比32位的JVM多耗费50%的内存。为了节约内存可以使用选项`+UseCompressedOops`开启指针压缩，其中，oop即ordinary object pointer普通对象指针。开启该选项后，下列指针将压缩至32位：
-  > >
-  > > 1. 每个Class的属性指针（即静态变量）
-  > > 2. 每个对象的属性指针（即对象变量）
-  > > 3. 普通对象数组的每个元素指针
-  > >
-  > > 当然，也不是所有的指针都会压缩，一些特殊类型的指针JVM不会优化，比如指向PermGen的Class对象指针(JDK8中指向元空间的Class对象指针)、本地变量、堆栈元素、入参、返回值和NULL指针等。
-  >
-  > 
-  >
-  > **array length** 
-  >
-  > > 如果对象是一个数组，那对象头还需有额外的空间用于存储数组的长度，这部分数据的长度也随着JVM架构的不同而不同：32位的JVM上，长度为32位；64位JVM则为64位。64位JVM如果开启`+UseCompressedOops`选项，**该区域长度也将由64位压缩至32位**。
-
-- ### 实例数据
-
-  **实例数据部分是对象真正存储的有效信息**，也是在程序中所定义的各种类型的字段内容。
-
-- ### 对齐填充
-
-  **对齐填充部分不是必然存在的，也没有什么特别的含义，仅仅起占位作用。** 因为 Hotspot 虚拟机的自动内存管理系统要求对象起始地址**必须是 8 字节的整数倍**，换句话说就是对象的大小必须是 8 字节的整数倍。而对象头部分正好是 8 字节的倍数（1 倍或 2 倍），因此，当对象实例数据部分没有对齐时，就需要通过对齐填充来补全。
 
 
 
@@ -358,13 +300,89 @@ uint ageTable::compute_tenuring_threshold(size_t survivor_capacity) {
 - #### Full GC触发的条件
   - System.gc()方法的调用，此方法是建议JVM进行Full GC,虽然只是建议而非一定,但很多情况下它会触发 Full GC,从而增加Full GC的频率,也即增加了间歇性停顿的次数。一般情况下不使用此方法，让虚拟机自己去管理它的内存，可通过-XX:+ DisableExplicitGC来禁止RMI调用System.gc()。 
   - 老年代的内存空间不足，发生Full GC一般都会有一次Minor GC。大对象直接进入老年代，如很长的字符串数组，虚拟机提供一个-XX:PretenureSizeThreadhold参数，令大于这个参数值的对象直接在老年代中分配，避免在Eden区和两个Survivor区发生大量的内存拷贝；
-  - 方法区内存空间不足，Permanet Generation中存放的为一些class的信息、常量、静态变量等数据，当系统中要加载的类、反射的类和调用的方法较多时，Permanet Generation可能会被占满，在未配置为采用CMS GC的情况下也会执行Full GC。如果经过Full GC仍然回收不了，那么JVM会抛出如下错误信息：java.lang.OutOfMemoryError: PermGen space
-    为避免Perm Gen占满造成Full GC现象，可采用的方法为增大Perm Gen空间或转为使用CMS GC。
+  - 方法区内存空间不足，Permanet Generation中存放的为一些class的信息、常量、静态变量等数据，当系统中要加载的类、反射的类和调用的方法较多时，Permanet Generation可能会被占满，在未配置为采用CMS GC的情况下也会执行Full GC。如果经过Full GC仍然回收不了，那么JVM会抛出如下错误信息：java.lang.OutOfMemoryError: PermGen space为避免Perm Gen占满造成Full GC现象，可采用的方法为增大Perm Gen空间或转为使用CMS GC。
   - 当Minor GC时，老年代的剩余空间小于历次从新生代往老年代中移的对象的平均内存空间大小时，Hotspot为了避免由于新生代对象晋升到旧生代导致旧生代空间不足的现象，在进行Minor GC时，做了一个判断，如果之前统计所得到的Minor GC晋升到旧生代的平均大小大于旧生代的剩余空间，那么就直接触发Full GC。
     - 例如程序第一次触发Minor GC后，有6MB的对象晋升到旧生代，那么当下一次Minor GC发生时，首先检查旧生代的剩余空间是否大于6MB，如果小于6MB，则执行Full GC。
     - 当新生代采用PS GC时，方式稍有不同，PS GC是在Minor GC后也会检查，例如上面的例子中第一次Minor GC后，PS GC会检查此时旧生代的剩余空间是否大于6MB，如小于，则触发对旧生代的回收。
     - 对于使用RMI来进行RPC或管理的Sun JDK应用而言，默认情况下会一小时执行一次Full GC。可在启动时通过-java -Dsun.rmi.dgc.client.gcInterval=3600000来设置Full GC执行的间隔时间或通过-XX:+ DisableExplicitGC来禁止RMI调用System.gc。
   - 堆中分配很大的对象，大对象是指需要大量连续内存空间的java对象，例如很长的数组，此种对象会直接进入老年代，而老年代虽然有很大的剩余空间，但是无法找到足够大的连续空间来分配给当前对象，此种情况就会触发JVM进行Full GC。为了解决这个问题，CMS垃圾收集器提供了一个可配置的参数，即-XX:+UseCMSCompactAtFullCollection开关参数，用于在“享受”完Full GC服务之后额外免费赠送一个碎片整理的过程，内存整理的过程无法并发的，空间碎片问题没有了，但提顿时间不得不变长了，JVM设计者们还提供了另外一个参数 -XX:CMSFullGCsBeforeCompaction,这个参数用于设置在执行多少次不压缩的Full GC后,跟着来一次带压缩的。
+
+
+
+## happens-before
+
+**一、程序顺序原则：** 即在一个线程内必须保证语义串行性，也就是说按照代码顺序执行。
+
+**二、锁规则：** 解锁(unlock)操作必然发生在后续的同一个锁的加锁(lock)之前，也就是说，如果对于一个锁解锁后，再加锁，那么加锁的动作必须在解锁动作之后(同一个锁)。
+
+**三、volatile规则：**   volatile变量的写，先发生于读，这保证了volatile变量的可见性，简单的理解就是，volatile变量在每次被线程访问时，都强迫从主内存中读该变量的值，而当该变量发生变化时，又会强迫将最新的值刷新到主内存，任何时刻，不同的线程总是能够看到该变量的最新值。
+
+**四、线程启动规则：**   线程的start()方法先于它的每一个动作，即如果线程A在执行线程B的start方法之前修改了共享变量的值，那么当线程B执行start方法时，线程A对共享变量的修改对线程B可见。
+
+**五、传递性优先级规则：**  A先于B ，B先于C 那么A必然先于C。
+
+**六、线程终止规则：** 线程的所有操作先于线程的终结，Thread.join()方法的作用是等待当前执行的线程终止。假设在线程B终止之前，修改了共享变量，线程A从线程B的join方法成功返回后，线程B对共享变量的修改将对线程A可见。
+
+**七、线程中断规则：** 对线程 interrupt()方法的调用先行发生于被中断线程的代码检测到中断事件的发生，可以通过Thread.interrupted()方法检测线程是否中断。
+
+**八、对象终结规则：** 对象的构造函数执行，结束先于finalize()方法。
+
+
+
+## 对象的内存布局
+
+- ### 对象头（64位机器）
+
+  > **Mark Word 64bits**
+  >
+  > > | 锁状态/gc | -                             | -           | -        | -     | 偏向锁标志位1bit | 锁标志位2bit |
+  > > | --------- | ----------------------------- | ----------- | -------- | ----- | ---------------- | ------------ |
+  > > | 无锁      | unused:25                     | hashcode:31 | unused:1 | age:4 | 0                | 01           |
+  > > | 偏向锁    | thread:54                     | epoch:2     | unused:1 | age:4 | 1                | 01           |
+  > > | 轻量级锁  | ptr_to_lock_record:62         | -           | -        | -     | -                | 00           |
+  > > | 重量级锁  | ptr_to_heavyweight_monitor:62 | -           | -        | -     | -                | 10           |
+  > > | gc标记    | -                             | -           | -        | -     | -                | 11           |
+  > >
+  > > **age**：4位的Java对象年龄。在GC中，如果对象在Survivor区复制一次，年龄增加1。当对象达到设定的阈值时，将会晋升到老年代。默认情况下，并行GC的年龄阈值为15，并发GC的年龄阈值为6。由于age只有4位，所以最大值为15，这就是`-XX:MaxTenuringThreshold`选项最大值为15的原因。
+  > >
+  > > **hashcode**：31位的对象标识Hash码，采用延迟加载技术。调用方法`System.identityHashCode()`计算，并会将结果写到该对象头中。当对象被锁定时，该值会移动到管程Monitor中。
+  > >
+  > > **thread**：持有偏向锁的线程ID
+  > >
+  > > **epoch**：偏向时间戳
+  > >
+  > > **ptr_to_lock_record**：指向栈中所记录的指针
+  > >
+  > > **ptr_to_heavyweight_monitor**：指向管程Monitor的指针
+  > >
+  > > *只有在锁标志位为01的时候，才会去看偏向锁标志位是0还是1*
+  >
+  > 
+  >
+  > **Klass pointer 64bits-uncompressed/32bits-compressed(default)**
+  >
+  > > 这一部分用于存储对象的类型指针，该指针指向它的类元数据，JVM通过这个指针确定对象是哪个类的实例。该指针的位长度为JVM的一个字大小，即32位的JVM为32位，64位的JVM为64位。
+  > > 如果应用的对象过多，使用64位的指针将浪费大量内存，统计而言，64位的JVM将会比32位的JVM多耗费50%的内存。为了节约内存可以使用选项`+UseCompressedOops`开启指针压缩，其中，oop即ordinary object pointer普通对象指针。开启该选项后，下列指针将压缩至32位：
+  > >
+  > > 1. 每个Class的属性指针（即静态变量）
+  > > 2. 每个对象的属性指针（即对象变量）
+  > > 3. 普通对象数组的每个元素指针
+  > >
+  > > 当然，也不是所有的指针都会压缩，一些特殊类型的指针JVM不会优化，比如指向PermGen的Class对象指针(JDK8中指向元空间的Class对象指针)、本地变量、堆栈元素、入参、返回值和NULL指针等。
+  >
+  > 
+  >
+  > **array length** 
+  >
+  > > 如果对象是一个数组，那对象头还需有额外的空间用于存储数组的长度，这部分数据的长度也随着JVM架构的不同而不同：32位的JVM上，长度为32位；64位JVM则为64位。64位JVM如果开启`+UseCompressedOops`选项，**该区域长度也将由64位压缩至32位**。
+
+- ### 实例数据
+
+  **实例数据部分是对象真正存储的有效信息**，也是在程序中所定义的各种类型的字段内容。
+
+- ### 对齐填充
+
+  **对齐填充部分不是必然存在的，也没有什么特别的含义，仅仅起占位作用。** 因为 Hotspot 虚拟机的自动内存管理系统要求对象起始地址**必须是 8 字节的整数倍**，换句话说就是对象的大小必须是 8 字节的整数倍。而对象头部分正好是 8 字节的倍数（1 倍或 2 倍），因此，当对象实例数据部分没有对齐时，就需要通过对齐填充来补全。
 
 
 
@@ -378,7 +396,7 @@ uint ageTable::compute_tenuring_threshold(size_t survivor_capacity) {
 
 ![After](D:\IDEA projects\practiceCoding\docs\java\LightLockAfterCAS.jpg)
 
-### Lock Recod简介
+### Lock Record简介
 
 #### 用途
 
@@ -398,8 +416,8 @@ class BasicLock VALUE_OBJ_CLASS_SPEC {
 // It is currently embedded in an interpreter frame.
 class BasicObjectLock VALUE_OBJ_CLASS_SPEC {
  private:
-  BasicLock _lock;   // the lock, must be double word aligned
-  oop       _obj;    // object holds the lock;
+  BasicLock _lock;   // the lock, must be double word aligned; markword
+  oop       _obj;    // object holds the lock; pointer
 };
 ```
 
@@ -485,6 +503,10 @@ lock record在线程的Interpretered Frame上(解释帧)分配
 > > > 3. CAS操作，将当前线程ID放入对象Mark Word的线程ID区域，获取到偏向锁，接下来可以执行同步锁代码。获取到偏向锁时，会隐式的创建一个lock record，`_lock`存的是自己的线程ID，`_obj`指向对象的Mark Word。
 > > >
 > > > *请求锁时lock record操作的源代码*
+> > >
+> > > > fast_enter: 可偏向-偏向锁启动
+> > > >
+> > > > slow_enter: 不可偏向-偏向锁关闭
 > > >
 > > > ```c++
 > > > CASE(_monitorenter): {
@@ -878,204 +900,208 @@ lock record在线程的Interpretered Frame上(解释帧)分配
 > >
 > > ```c++
 > > ObjectMonitor * ATTR ObjectSynchronizer::inflate (Thread * Self, oop object) {
-> >   ...
+> > ...
 > > 
-> >   // 空for循环实现CAS
-> >   for (;;) {
-> >       const markOop mark = object->mark() ;
-> >       assert (!mark->has_bias_pattern(), "invariant") ;
+> > // 空for循环实现CAS
+> > for (;;) {
+> >    const markOop mark = object->mark() ;
+> >    assert (!mark->has_bias_pattern(), "invariant") ;
 > > 
-> >       // The mark can be in one of the following states:
-> >       // *  Inflated     - just return
-> >       // *  Stack-locked - coerce it to inflated
-> >       // *  INFLATING    - busy wait for conversion to complete
-> >       // *  Neutral      - aggressively inflate the object.
-> >       // *  BIASED       - Illegal.  We should never see this
+> >    // The mark can be in one of the following states:
+> >    // *  Inflated     - just return
+> >    // *  Stack-locked - coerce it to inflated
+> >    // *  INFLATING    - busy wait for conversion to complete
+> >    // *  Neutral      - aggressively inflate the object.
+> >    // *  BIASED       - Illegal.  We should never see this
 > > 
-> >       // CASE: inflated
-> >       if (mark->has_monitor()) {
-> >           ObjectMonitor * inf = mark->monitor() ;
-> >           ...
-> >           return inf ;
-> >       }
+> >    // CASE: inflated
+> >    if (mark->has_monitor()) {
+> >        ObjectMonitor * inf = mark->monitor() ;
+> >        ...
+> >        return inf ;
+> >    }
 > > 
-> >       // CASE: inflation in progress - inflating over a stack-lock.
-> >       // Some other thread is converting from stack-locked to inflated.
-> >       // Only that thread can complete inflation -- other threads must wait.
-> >       // The INFLATING value is transient.
-> >       // Currently, we spin/yield/park and poll the markword, waiting for inflation to finish.
-> >       // We could always eliminate polling by parking the thread on some auxiliary list.
-> >       // 有其他的线程正在从stack-locked转换为inflated
-> >       // 且只有那个正在做的线程能够完成膨胀，其余线程都自旋等待其完成
-> >       if (mark == markOopDesc::INFLATING()) {
-> >          TEVENT (Inflate: spin while INFLATING) ;
-> >          ReadStableMark(object) ;
-> >          continue ;
-> >       }
+> >    // CASE: inflation in progress - inflating over a stack-lock.
+> >    // Some other thread is converting from stack-locked to inflated.
+> >    // Only that thread can complete inflation -- other threads must wait.
+> >    // The INFLATING value is transient.
+> >    // Currently, we spin/yield/park and poll the markword, waiting for inflation to finish.
+> >    // We could always eliminate polling by parking the thread on some auxiliary list.
+> >    // 有其他的线程正在从stack-locked转换为inflated
+> >    // 且只有那个正在做的线程能够完成膨胀，其余线程都自旋等待其完成
+> >    if (mark == markOopDesc::INFLATING()) {
+> >       TEVENT (Inflate: spin while INFLATING) ;
+> >       ReadStableMark(object) ;
+> >       continue ;
+> >    }
 > > 
-> >       // CASE: stack-locked
-> >       // Could be stack-locked either by this thread or by some other thread.
-> >       //
-> >       // Note that we allocate the objectmonitor speculatively, _before_ attempting
-> >       // to install INFLATING into the mark word.  We originally installed INFLATING,
-> >       // allocated the objectmonitor, and then finally STed the address of the
-> >       // objectmonitor into the mark.  This was correct, but artificially lengthened
-> >       // the interval in which INFLATED appeared in the mark, thus increasing
-> >       // the odds of inflation contention.
-> >       //
-> >       // We now use per-thread private objectmonitor free lists.
-> >       // These list are reprovisioned from the global free list outside the
-> >       // critical INFLATING...ST interval.  A thread can transfer
-> >       // multiple objectmonitors en-mass from the global free list to its local free list.
-> >       // This reduces coherency traffic and lock contention on the global free list.
-> >       // Using such local free lists, it doesn't matter if the omAlloc() call appears
-> >       // before or after the CAS(INFLATING) operation.
-> >       // See the comments in omAlloc().
-> >       // 我们现在使用每线程私有objectmonitor自由列表。这些列表是从临界膨胀间隔外的	  // 全局自由列表中重新设置的。一个线程可以将多个objectmonitors从全局自由列表大	   // 量传输到其本地自由列表。这减少了全局空闲列表上的一致性通信量和锁争用。使用这	  // 样的本地空闲列表，omAlloc（）调用出现在CAS（膨胀）操作之前还是之后并不重		  // 要。请参见omAlloc（）中的注释。
+> >    // CASE: stack-locked
+> >    // Could be stack-locked either by this thread or by some other thread.
+> >    //
+> >    // Note that we allocate the objectmonitor speculatively, _before_ attempting
+> >    // to install INFLATING into the mark word.  We originally installed INFLATING,
+> >    // allocated the objectmonitor, and then finally STed the address of the
+> >    // objectmonitor into the mark.  This was correct, but artificially lengthened
+> >    // the interval in which INFLATED appeared in the mark, thus increasing
+> >    // the odds of inflation contention.
+> >    //
+> >    // We now use per-thread private objectmonitor free lists.
+> >    // These list are reprovisioned from the global free list outside the
+> >    // critical INFLATING...ST interval.  A thread can transfer
+> >    // multiple objectmonitors en-mass from the global free list to its local free list.
+> >    // This reduces coherency traffic and lock contention on the global free list.
+> >    // Using such local free lists, it doesn't matter if the omAlloc() call appears
+> >    // before or after the CAS(INFLATING) operation.
+> >    // See the comments in omAlloc().
+> >    // 我们现在使用每个线程私有objectmonitor自由列表。这些列表是从临界膨胀间隔外的	  
+> >    // 全局自由列表中重新设置的。一个线程可以将多个objectmonitors从全局自由列表大	   
+> >    // 量传输到其本地自由列表。这减少了全局空闲列表上的一致性通信量和锁争用。使用这	  
+> >    // 样的本地空闲列表，omAlloc（）调用出现在CAS（膨胀）操作之前还是之后并不重		  
+> >    // 要。请参见omAlloc（）中的注释。
 > > 
-> >       if (mark->has_locker()) {
-> >           // 乐观的预测能CAS成功，因此直接分配ObjectMoniter
-> >           // 每个线程都可以试着创建，但只有成功的会被保存，不然就会被释放
-> >           ObjectMonitor * m = omAlloc (Self) ;
-> >           // Optimistically prepare the objectmonitor - anticipate successful CAS
-> >           // We do this before the CAS in order to minimize the length of time
-> >           // in which INFLATING appears in the mark.
-> >           m->Recycle();
-> >           m->_Responsible  = NULL ;
-> >           m->OwnerIsThread = 0 ;
-> >           m->_recursions   = 0 ;
-> >           m->_SpinDuration = ObjectMonitor::Knob_SpinLimit ;   // Consider: maintain by type/class
+> >    if (mark->has_locker()) {
+> >        // 乐观的预测能CAS成功，因此直接分配ObjectMoniter
+> >        // 每个线程都可以试着创建，但只有成功的会被保存，不然就会被释放
+> >        ObjectMonitor * m = omAlloc (Self) ;
+> >        // Optimistically prepare the objectmonitor - anticipate successful CAS
+> >        // We do this before the CAS in order to minimize the length of time
+> >        // in which INFLATING appears in the mark.
+> >        m->Recycle();
+> >        m->_Responsible  = NULL ;
+> >        m->OwnerIsThread = 0 ;
+> >        m->_recursions   = 0 ;
+> >        m->_SpinDuration = ObjectMonitor::Knob_SpinLimit ;   // Consider: maintain by type/class
 > > 
-> >           markOop cmp = (markOop) Atomic::cmpxchg_ptr (markOopDesc::INFLATING(), object->mark_addr(), mark) ;
-> >           if (cmp != mark) {
-> >               // CAS失败的话，就释放空间，然后重试
-> >              omRelease (Self, m, true) ;
-> >              continue ;       // Interference -- just retry
-> >           }
-> > 
-> >           // We've successfully installed INFLATING (0) into the mark-word.
-> >           // This is the only case where 0 will appear in a mark-work.
-> >           // Only the singular thread that successfully swings the mark-word
-> >           // to 0 can perform (or more precisely, complete) inflation.
-> >           //
-> >           // Why do we CAS a 0 into the mark-word instead of just CASing the
-> >           // mark-word from the stack-locked value directly to the new inflated state?
-> >           // Consider what happens when a thread unlocks a stack-locked object.
-> >           // It attempts to use CAS to swing the displaced header value from the
-> >           // on-stack basiclock back into the object header.  Recall also that the
-> >           // header value (hashcode, etc) can reside in (a) the object header, or
-> >           // (b) a displaced header associated with the stack-lock, or (c) a displaced
-> >           // header in an objectMonitor.  The inflate() routine must copy the header
-> >           // value from the basiclock on the owner's stack to the objectMonitor, all
-> >           // the while preserving the hashCode stability invariants.  If the owner
-> >           // decides to release the lock while the value is 0, the unlock will fail
-> >           // and control will eventually pass from slow_exit() to inflate.  The owner
-> >           // will then spin, waiting for the 0 value to disappear.   Put another way,
-> >           // the 0 causes the owner to stall if the owner happens to try to
-> >           // drop the lock (restoring the header from the basiclock to the object)
-> >           // while inflation is in-progress.  This protocol avoids races that might
-> >           // would otherwise permit hashCode values to change or "flicker" for an object.
-> >           // Critically, while object->mark is 0 mark->displaced_mark_helper() is stable.
-> >           // 0 serves as a "BUSY" inflate-in-progress indicator.
-> > 
-> > 
-> >           // fetch the displaced mark from the owner's stack.
-> >           // The owner can't die or unwind past the lock while our INFLATING
-> >           // object is in the mark.  Furthermore the owner can't complete
-> >           // an unlock on the object, either.
-> >           // 只有成功将状态设置为INFLATING(0)的那个线程可以完成整个膨胀
-> >           markOop dmw = mark->displaced_mark_helper() ;
-> >           assert (dmw->is_neutral(), "invariant") ;
-> > 
-> >           // Setup monitor fields to proper values -- prepare the monitor
-> >           m->set_header(dmw) ;
-> > 
-> >           // Optimization: if the mark->locker stack address is associated
-> >           // with this thread we could simply set m->_owner = Self and
-> >           // m->OwnerIsThread = 1. Note that a thread can inflate an object
-> >           // that it has stack-locked -- as might happen in wait() -- directly
-> >           // with CAS.  That is, we can avoid the xchg-NULL .... ST idiom.
-> >           m->set_owner(mark->locker());
-> >           m->set_object(object);
-> >           // TODO-FIXME: assert BasicLock->dhw != 0.
-> > 
-> >           // Must preserve store ordering. The monitor state must
-> >           // be stable at the time of publishing the monitor address.
-> >           guarantee (object->mark() == markOopDesc::INFLATING(), "invariant") ;
-> >           object->release_set_mark(markOopDesc::encode(m));
-> > 
-> >           // Hopefully the performance counters are allocated on distinct cache lines
-> >           // to avoid false sharing on MP systems ...
-> >           if (ObjectMonitor::_sync_Inflations != NULL) ObjectMonitor::_sync_Inflations->inc() ;
-> >           TEVENT(Inflate: overwrite stacklock) ;
-> >           if (TraceMonitorInflation) {
-> >             if (object->is_instance()) {
-> >               ResourceMark rm;
-> >               tty->print_cr("Inflating object " INTPTR_FORMAT " , mark " INTPTR_FORMAT " , type %s",
-> >                 (void *) object, (intptr_t) object->mark(),
-> >                 object->klass()->external_name());
-> >             }
-> >           }
-> >           return m ;
-> >       }
-> > 
-> >       // CASE: neutral
-> >       // TODO-FIXME: for entry we currently inflate and then try to CAS _owner.
-> >       // If we know we're inflating for entry it's better to inflate by swinging a
-> >       // pre-locked objectMonitor pointer into the object header.   A successful
-> >       // CAS inflates the object *and* confers ownership to the inflating thread.
-> >       // In the current implementation we use a 2-step mechanism where we CAS()
-> >       // to inflate and then CAS() again to try to swing _owner from NULL to Self.
-> >       // An inflateTry() method that we could call from fast_enter() and slow_enter()
-> >       // would be useful.
-> > 
-> >       assert (mark->is_neutral(), "invariant");
-> >       ObjectMonitor * m = omAlloc (Self) ;
-> >       // prepare m for installation - set monitor to initial state
-> >       m->Recycle();
-> >       m->set_header(mark);
-> >       m->set_owner(NULL);
-> >       m->set_object(object);
-> >       m->OwnerIsThread = 1 ;
-> >       m->_recursions   = 0 ;
-> >       m->_Responsible  = NULL ;
-> >       m->_SpinDuration = ObjectMonitor::Knob_SpinLimit ;       // consider: keep metastats by type/class
-> > 
-> >       if (Atomic::cmpxchg_ptr (markOopDesc::encode(m), object->mark_addr(), mark) != mark) {
-> >           m->set_object (NULL) ;
-> >           m->set_owner  (NULL) ;
-> >           m->OwnerIsThread = 0 ;
-> >           m->Recycle() ;
+> >        markOop cmp = (markOop) Atomic::cmpxchg_ptr (markOopDesc::INFLATING(), object->mark_addr(), mark) ;
+> >        if (cmp != mark) {
+> >            // CAS失败的话，就释放空间，然后重试
 > >           omRelease (Self, m, true) ;
-> >           m = NULL ;
-> >           continue ;
-> >           // interference - the markword changed - just retry.
-> >           // The state-transitions are one-way, so there's no chance of
-> >           // live-lock -- "Inflated" is an absorbing state.
-> >       }
+> >           continue ;       // Interference -- just retry
+> >        }
 > > 
-> >       // Hopefully the performance counters are allocated on distinct
-> >       // cache lines to avoid false sharing on MP systems ...
-> >       if (ObjectMonitor::_sync_Inflations != NULL) ObjectMonitor::_sync_Inflations->inc() ;
-> >       TEVENT(Inflate: overwrite neutral) ;
-> >       if (TraceMonitorInflation) {
-> >         if (object->is_instance()) {
-> >           ResourceMark rm;
-> >           tty->print_cr("Inflating object " INTPTR_FORMAT " , mark " INTPTR_FORMAT " , type %s",
-> >             (void *) object, (intptr_t) object->mark(),
-> >             object->klass()->external_name());
-> >         }
-> >       }
-> >       return m ;
-> >   }
+> >        // We've successfully installed INFLATING (0) into the mark-word.
+> >        // This is the only case where 0 will appear in a mark-work.
+> >        // Only the singular thread that successfully swings the mark-word
+> >        // to 0 can perform (or more precisely, complete) inflation.
+> >        //
+> >        // Why do we CAS a 0 into the mark-word instead of just CASing the
+> >        // mark-word from the stack-locked value directly to the new inflated state?
+> >        // Consider what happens when a thread unlocks a stack-locked object.
+> >        // It attempts to use CAS to swing the displaced header value from the
+> >        // on-stack basiclock back into the object header.  Recall also that the
+> >        // header value (hashcode, etc) can reside in (a) the object header, or
+> >        // (b) a displaced header associated with the stack-lock, or (c) a displaced
+> >        // header in an objectMonitor.  The inflate() routine must copy the header
+> >        // value from the basiclock on the owner's stack to the objectMonitor, all
+> >        // the while preserving the hashCode stability invariants.  If the owner
+> >        // decides to release the lock while the value is 0, the unlock will fail
+> >        // and control will eventually pass from slow_exit() to inflate.  The owner
+> >        // will then spin, waiting for the 0 value to disappear.   Put another way,
+> >        // the 0 causes the owner to stall if the owner happens to try to
+> >        // drop the lock (restoring the header from the basiclock to the object)
+> >        // while inflation is in-progress.  This protocol avoids races that might
+> >        // would otherwise permit hashCode values to change or "flicker" for an object.
+> >        // Critically, while object->mark is 0 mark->displaced_mark_helper() is stable.
+> >        // 0 serves as a "BUSY" inflate-in-progress indicator.
+> > 
+> > 
+> >        // fetch the displaced mark from the owner's stack.
+> >        // The owner can't die or unwind past the lock while our INFLATING
+> >        // object is in the mark.  Furthermore the owner can't complete
+> >        // an unlock on the object, either.
+> >        // 只有成功将状态设置为INFLATING(0)的那个线程可以完成整个膨胀
+> >        markOop dmw = mark->displaced_mark_helper() ;
+> >        assert (dmw->is_neutral(), "invariant") ;
+> > 
+> >        // Setup monitor fields to proper values -- prepare the monitor
+> >        m->set_header(dmw) ;
+> > 
+> >        // Optimization: if the mark->locker stack address is associated
+> >        // with this thread we could simply set m->_owner = Self and
+> >        // m->OwnerIsThread = 1. Note that a thread can inflate an object
+> >        // that it has stack-locked -- as might happen in wait() -- directly
+> >        // with CAS.  That is, we can avoid the xchg-NULL .... ST idiom.
+> >        m->set_owner(mark->locker());
+> >        m->set_object(object);
+> >        // TODO-FIXME: assert BasicLock->dhw != 0.
+> > 
+> >        // Must preserve store ordering. The monitor state must
+> >        // be stable at the time of publishing the monitor address.
+> >        guarantee (object->mark() == markOopDesc::INFLATING(), "invariant") ;
+> >        object->release_set_mark(markOopDesc::encode(m));
+> > 
+> >        // Hopefully the performance counters are allocated on distinct cache lines
+> >        // to avoid false sharing on MP systems ...
+> >        if (ObjectMonitor::_sync_Inflations != NULL) ObjectMonitor::_sync_Inflations->inc() ;
+> >        TEVENT(Inflate: overwrite stacklock) ;
+> >        if (TraceMonitorInflation) {
+> >          if (object->is_instance()) {
+> >            ResourceMark rm;
+> >            tty->print_cr("Inflating object " INTPTR_FORMAT " , mark " INTPTR_FORMAT " , type %s",
+> >              (void *) object, (intptr_t) object->mark(),
+> >              object->klass()->external_name());
+> >          }
+> >        }
+> >        return m ;
+> >    }
+> > 
+> >    // CASE: neutral
+> >    // TODO-FIXME: for entry we currently inflate and then try to CAS _owner.
+> >    // If we know we're inflating for entry it's better to inflate by swinging a
+> >    // pre-locked objectMonitor pointer into the object header.   A successful
+> >    // CAS inflates the object *and* confers ownership to the inflating thread.
+> >    // In the current implementation we use a 2-step mechanism where we CAS()
+> >    // to inflate and then CAS() again to try to swing _owner from NULL to Self.
+> >    // An inflateTry() method that we could call from fast_enter() and slow_enter()
+> >    // would be useful.
+> > 
+> >    assert (mark->is_neutral(), "invariant");
+> >    ObjectMonitor * m = omAlloc (Self) ;
+> >    // prepare m for installation - set monitor to initial state
+> >    m->Recycle();
+> >    m->set_header(mark);
+> >    m->set_owner(NULL);
+> >    m->set_object(object);
+> >    m->OwnerIsThread = 1 ;
+> >    m->_recursions   = 0 ;
+> >    m->_Responsible  = NULL ;
+> >    m->_SpinDuration = ObjectMonitor::Knob_SpinLimit ;       // consider: keep metastats by type/class
+> > 
+> >    if (Atomic::cmpxchg_ptr (markOopDesc::encode(m), object->mark_addr(), mark) != mark) {
+> >        m->set_object (NULL) ;
+> >        m->set_owner  (NULL) ;
+> >        m->OwnerIsThread = 0 ;
+> >        m->Recycle() ;
+> >        omRelease (Self, m, true) ;
+> >        m = NULL ;
+> >        continue ;
+> >        // interference - the markword changed - just retry.
+> >        // The state-transitions are one-way, so there's no chance of
+> >        // live-lock -- "Inflated" is an absorbing state.
+> >    }
+> > 
+> >    // Hopefully the performance counters are allocated on distinct
+> >    // cache lines to avoid false sharing on MP systems ...
+> >    if (ObjectMonitor::_sync_Inflations != NULL) ObjectMonitor::_sync_Inflations->inc() ;
+> >    TEVENT(Inflate: overwrite neutral) ;
+> >    if (TraceMonitorInflation) {
+> >      if (object->is_instance()) {
+> >        ResourceMark rm;
+> >        tty->print_cr("Inflating object " INTPTR_FORMAT " , mark " INTPTR_FORMAT " , type %s",
+> >          (void *) object, (intptr_t) object->mark(),
+> >          object->klass()->external_name());
+> >      }
+> >    }
+> >    return m ;
+> > }
 > > }
 > > ```
 > >
 > > - mark->has_monitor() 判断如果当前锁对象为重量级锁，也就是lock:10，则执行第二步骤,否则执行第三步骤。
 > > - 通过 mark->monitor获得重量级锁的对象监视器ObjectMonitor并返回，锁膨胀过程结束。
 > > - 如果当前锁处于 INFLATING,说明有其他线程在执行锁膨胀，那么当前线程通过自旋等待其他线程锁膨胀完成。
-> > - 如果当前是轻量级锁状态 mark->has_locker()，则进行锁膨胀。首先，通过omAlloc方法获得一个可用的ObjectMonitor，并设置初始数据；然后通过CAS将对象头设置为`markOopDesc:INFLATING`，表示当前锁正在膨胀，如果CAS失败，继续自旋。
-> > - 如果是无锁状态，逻辑类似第四步骤。
+> > - 如果当前是轻量级锁状态 mark->has_locker()，has_locker()表示现在该对象处在轻量级锁的状态中。则进行锁膨胀。首先，通过omAlloc方法获得一个可用的ObjectMonitor，并设置初始数据；然后通过CAS将对象头设置为`markOopDesc:INFLATING`，表示当前锁正在膨胀，如果CAS失败，继续自旋。如果成功，就把这个ObjectMonitor的owner设置为之前拥有此对象轻量级锁的线程。
+> > - 如果是无锁状态is_neutral()，逻辑类似第四步骤。只不过这里因为没有线程拥有此对象的轻量级锁，所以设置ObjectMonitor的owner为null。
 > >
 > > *锁膨胀的过程实际上是获得一个ObjectMonitor对象监视器，而真正抢占锁的逻辑，在 ObjectMonitor::enter方法里面。*
 >
@@ -1094,27 +1120,27 @@ lock record在线程的Interpretered Frame上(解释帧)分配
 > > 
 > > cur = Atomic::cmpxchg_ptr (Self, &_owner, NULL) ;
 > > if (cur == NULL) {//CAS成功
-> >   // Either ASSERT _recursions == 0 or explicitly set _recursions = 0.
-> >   assert (_recursions == 0   , "invariant") ;
-> >   assert (_owner      == Self, "invariant") ;
-> >   // CONSIDER: set or assert OwnerIsThread == 1
-> >   return ;
+> > // Either ASSERT _recursions == 0 or explicitly set _recursions = 0.
+> > assert (_recursions == 0   , "invariant") ;
+> > assert (_owner      == Self, "invariant") ;
+> > // CONSIDER: set or assert OwnerIsThread == 1
+> > return ;
 > > }
 > > 
 > > if (cur == Self) {
-> >   // TODO-FIXME: check for integer overflow!  BUGID 6557169.
-> >   _recursions ++ ;
-> >   return ;
+> > // TODO-FIXME: check for integer overflow!  BUGID 6557169.
+> > _recursions ++ ;
+> > return ;
 > > }
 > > 
 > > if (Self->is_lock_owned ((address)cur)) {
-> >  assert (_recursions == 0, "internal state error");
-> >  _recursions = 1 ;
-> >  // Commute owner from a thread-specific on-stack BasicLockObject address to
-> >  // a full-fledged "Thread *".
-> >  _owner = Self ;
-> >  OwnerIsThread = 1 ;
-> >  return ;
+> > assert (_recursions == 0, "internal state error");
+> > _recursions = 1 ;
+> > // Commute owner from a thread-specific on-stack BasicLockObject address to
+> > // a full-fledged "Thread *".
+> > _owner = Self ;
+> > OwnerIsThread = 1 ;
+> > return ;
 > > }
 > > 
 > > // We've encountered genuine contention.
@@ -1127,11 +1153,11 @@ lock record在线程的Interpretered Frame上(解释帧)分配
 > > // Note that if we acquire the monitor from an initial spin
 > > // we forgo posting JVMTI events and firing DTRACE probes.
 > > if (Knob_SpinEarly && TrySpin (Self) > 0) {
-> >   assert (_owner == Self      , "invariant") ;
-> >   assert (_recursions == 0    , "invariant") ;
-> >   assert (((oop)(object()))->mark() == markOopDesc::encode(this), "invariant") ;
-> >   Self->_Stalled = 0 ;
-> >   return ;
+> > assert (_owner == Self      , "invariant") ;
+> > assert (_recursions == 0    , "invariant") ;
+> > assert (((oop)(object()))->mark() == markOopDesc::encode(this), "invariant") ;
+> > Self->_Stalled = 0 ;
+> > return ;
 > > }
 > > 
 > > assert (_owner != Self          , "invariant") ;
@@ -1150,44 +1176,44 @@ lock record在线程的Interpretered Frame上(解释帧)分配
 > > EventJavaMonitorEnter event;
 > > 
 > > { // Change java thread status to indicate blocked on monitor enter.
-> >  JavaThreadBlockedOnMonitorEnterState jtbmes(jt, this);
+> > JavaThreadBlockedOnMonitorEnterState jtbmes(jt, this);
 > > 
-> >  DTRACE_MONITOR_PROBE(contended__enter, this, object(), jt);
-> >  if (JvmtiExport::should_post_monitor_contended_enter()) {
-> >    JvmtiExport::post_monitor_contended_enter(jt, this);
-> >  }
+> > DTRACE_MONITOR_PROBE(contended__enter, this, object(), jt);
+> > if (JvmtiExport::should_post_monitor_contended_enter()) {
+> > JvmtiExport::post_monitor_contended_enter(jt, this);
+> > }
 > > 
-> >  OSThreadContendState osts(Self->osthread());
-> >  ThreadBlockInVM tbivm(jt);
+> > OSThreadContendState osts(Self->osthread());
+> > ThreadBlockInVM tbivm(jt);
 > > 
-> >  Self->set_current_pending_monitor(this);
+> > Self->set_current_pending_monitor(this);
 > > 
-> >  // TODO-FIXME: change the following for(;;) loop to straight-line code.
-> >  for (;;) {
-> >    jt->set_suspend_equivalent();
-> >    // cleared by handle_special_suspend_equivalent_condition()
-> >    // or java_suspend_self()
+> > // TODO-FIXME: change the following for(;;) loop to straight-line code.
+> > for (;;) {
+> > jt->set_suspend_equivalent();
+> > // cleared by handle_special_suspend_equivalent_condition()
+> > // or java_suspend_self()
 > > 
-> >    EnterI (THREAD) ;
+> > EnterI (THREAD) ;
 > > 
-> >    
-> >    if (!ExitSuspendEquivalent(jt)) break ;
 > > 
-> >    //
-> >    // We have acquired the contended monitor, but while we were
-> >    // waiting another thread suspended us. We don't want to enter
-> >    // the monitor while suspended because that would surprise the
-> >    // thread that suspended us.
-> >    //
-> >    // 退出suspend状态，因为获取到monitor的时候，可能别的线程给我们挂起了
-> >    // 我们不希望进入monitor的时候还被挂起，因为这会surprise那个挂起我们的线程
-> >        _recursions = 0 ;
-> >    _succ = NULL ;
-> >    exit (false, Self) ;
+> > if (!ExitSuspendEquivalent(jt)) break ;
 > > 
-> >    jt->java_suspend_self();
-> >  }
-> >  Self->set_current_pending_monitor(NULL);
+> > //
+> > // We have acquired the contended monitor, but while we were
+> > // waiting another thread suspended us. We don't want to enter
+> > // the monitor while suspended because that would surprise the
+> > // thread that suspended us.
+> > //
+> > // 退出suspend状态，因为获取到monitor的时候，可能别的线程给我们挂起了
+> > // 我们不希望进入monitor的时候还被挂起，因为这会surprise那个挂起我们的线程
+> >     _recursions = 0 ;
+> > _succ = NULL ;
+> > exit (false, Self) ;
+> > 
+> > jt->java_suspend_self();
+> > }
+> > Self->set_current_pending_monitor(NULL);
 > > }
 > > ...//此处省略无数行代码
 > > ```
@@ -1195,7 +1221,7 @@ lock record在线程的Interpretered Frame上(解释帧)分配
 > > - 通过CAS将monitor的 _owner字段设置为当前线程，如果设置成功，则直接返回。
 > > - 若之前的 `_owner`指向的是当前的线程，说明是重入，`_recursions++`增加重入次数。
 > > - 如果当前线程获取监视器锁成功，将 `_recursions`设置为1， `_owner`设置为当前线程。
-> > - 如果获取锁失败，则需要通过自旋等待锁释放，自旋执行方法ObjectMonitor::EnterI
+> > - 如果获取锁失败，则需要通过自旋等待锁释放，自旋执行方法ObjectMonitor::TrySpin()这个也就是TrySpin_VaryDuration()
 > >
 > > [ObjectMonitor::EnterI](http://hg.openjdk.java.net/jdk8u/jdk8u/hotspot/file/9ce27f0a4683/src/share/vm/runtime/objectMonitor.cpp#l502)
 > >
@@ -1593,15 +1619,14 @@ lock record在线程的Interpretered Frame上(解释帧)分配
 > >
 > > 1. _cxq != null **(first)**
 > >    1. QMode == 2   ExitEpilog(_cxq); ***return;***
-> >    2. QMode == 3   _EntryList.append(Dequeue( _cxq)); ***TO 1.5***
-> >    3. QMode == 4   _EntryList.preappend(Dequeue( _cxq)); ***TO 1.5***
-> >    4. _EntryList != null   ***TO 1.5***
-> >    5. ExitEpilog(_EntryList); ***return;***    ***因为QMode默认为0，所以 _EntryList不为空的话，默认会走到这里***
-> > 2. (_cxq != null **(first)** || _cxq == null **(first)**) && _EntryList == null
-> >    1. _cxq == null **(Second)**  ***Continue;***
-> >    2. _cxq != null **(Second)** && QMode == 1   _EntryList = Dequeue( _cxq).reverse(); ***TO 2.4***
-> >    3. _cxq != null **(Second)** && QMode != 1   _EntryList = Dequeue( _cxq); ***TO 2.4*** ***因为QMode默认为0，所以 _EntryList 为空的话，默认会走到这里***
-> >    4. _succ != null ***Continue;*** else ***TO 5***
+> >    2. QMode == 3   _EntryList.append(Dequeue( _cxq)); ***TO 2***
+> >    3. QMode == 4   _EntryList.preappend(Dequeue( _cxq)); ***TO 2***_
+> > 2. EntryList != null  ExitEpilog(_EntryList); ***return;***    ***因为QMode默认为0，所以 _EntryList不为空的话，默认会走到这里***
+> > 3. _EntryList == null
+> >    1. _cxq == null **(Second)**  ***Continue; 这表明两个都是空的，没有可以唤醒的线程***  
+> >    2. _cxq != null **(Second)** && QMode == 1   _EntryList = Dequeue( _cxq).reverse(); ***TO 3.4***
+> >    3. _cxq != null **(Second)** && QMode != 1   _EntryList = Dequeue( _cxq); ***TO 3.4*** ***因为QMode默认为0，所以 _EntryList 为空的话，默认会走到这里***
+> >    4. _succ != null ***Continue;*** else ***TO 3.5***
 > >    5. _EntryList != null   ExitEpilog( _EntryList); ***return;***
 > >
 > > 唤醒线程实际发生在[ObjectMonitor::ExitEpilog](http://hg.openjdk.java.net/jdk8u/jdk8u/hotspot/file/9ce27f0a4683/src/share/vm/runtime/objectMonitor.cpp#l1327)
@@ -1656,7 +1681,7 @@ lock record在线程的Interpretered Frame上(解释帧)分配
 
 
 
-## Thread: wait() & notify()/notifyAll()
+## Object: wait() & notify()/notifyAll()
 
 > wait()
 >
@@ -2345,11 +2370,262 @@ lock record在线程的Interpretered Frame上(解释帧)分配
 > > }
 > > ```
 > >
-> > 这是因为notify()之后，会按线程wait()的顺序进行唤醒，但是main线程本身也会参与对lock对象的锁竞争，如果main成功了，
+> > 这是因为notify()之后，会按线程wait()的顺序进行唤醒，但是main线程本身也会参与对lock对象的锁竞争。
 >
 > notifyAll()
+>
+> > 近乎重复notify()
+> >
+> > - 取_WaitSet中的第一个来作为待操作线程
+> > - Policy == 0   添加到_EntryList的头部
+> > - Policy == 1   添加到_EntryList的尾部
+> > - **Policy == 2（默认）** 添加到 _cxq的头部（此处与notify()不同）
+> > - Policy == 3   添加到_cxq的尾部
 
 
+
+## Thread: exit() & join()
+
+> [exit()](http://hg.openjdk.java.net/jdk8u/jdk8u/hotspot/file/9ce27f0a4683/src/share/vm/runtime/thread.cpp#l1729)
+>
+> > ```c++
+> > void JavaThread::exit(bool destroy_vm, ExitType exit_type) {
+> >   assert(this == JavaThread::current(),  "thread consistency check");
+> > 
+> >   HandleMark hm(this);
+> >   Handle uncaught_exception(this, this->pending_exception());
+> >   this->clear_pending_exception();
+> >   Handle threadObj(this, this->threadObj());
+> >   assert(threadObj.not_null(), "Java thread object should be created");
+> > 
+> >   if (get_thread_profiler() != NULL) {
+> >     get_thread_profiler()->disengage();
+> >     ResourceMark rm;
+> >     get_thread_profiler()->print(get_thread_name());
+> >   }
+> > 
+> > 
+> >   // FIXIT: This code should be moved into else part, when reliable 1.2/1.3 check is in place
+> >   {
+> >     EXCEPTION_MARK;
+> > 
+> >     CLEAR_PENDING_EXCEPTION;
+> >   }
+> >   // FIXIT: The is_null check is only so it works better on JDK1.2 VM's. This
+> >   // has to be fixed by a runtime query method
+> >   if (!destroy_vm || JDK_Version::is_jdk12x_version()) {
+> >     // JSR-166: change call from from ThreadGroup.uncaughtException to
+> >     // java.lang.Thread.dispatchUncaughtException
+> >     if (uncaught_exception.not_null()) {
+> >       Handle group(this, java_lang_Thread::threadGroup(threadObj()));
+> >       {
+> >         EXCEPTION_MARK;
+> >         // Check if the method Thread.dispatchUncaughtException() exists. If so
+> >         // call it.  Otherwise we have an older library without the JSR-166 changes,
+> >         // so call ThreadGroup.uncaughtException()
+> >         KlassHandle recvrKlass(THREAD, threadObj->klass());
+> >         CallInfo callinfo;
+> >         KlassHandle thread_klass(THREAD, SystemDictionary::Thread_klass());
+> >         LinkResolver::resolve_virtual_call(callinfo, threadObj, recvrKlass, thread_klass,
+> >                                            vmSymbols::dispatchUncaughtException_name(),
+> >                                            vmSymbols::throwable_void_signature(),
+> >                                            KlassHandle(), false, false, THREAD);
+> >         CLEAR_PENDING_EXCEPTION;
+> >         methodHandle method = callinfo.selected_method();
+> >         if (method.not_null()) {
+> >           JavaValue result(T_VOID);
+> >           JavaCalls::call_virtual(&result,
+> >                                   threadObj, thread_klass,
+> >                                   vmSymbols::dispatchUncaughtException_name(),
+> >                                   vmSymbols::throwable_void_signature(),
+> >                                   uncaught_exception,
+> >                                   THREAD);
+> >         } else {
+> >           KlassHandle thread_group(THREAD, SystemDictionary::ThreadGroup_klass());
+> >           JavaValue result(T_VOID);
+> >           JavaCalls::call_virtual(&result,
+> >                                   group, thread_group,
+> >                                   vmSymbols::uncaughtException_name(),
+> >                                   vmSymbols::thread_throwable_void_signature(),
+> >                                   threadObj,           // Arg 1
+> >                                   uncaught_exception,  // Arg 2
+> >                                   THREAD);
+> >         }
+> >         if (HAS_PENDING_EXCEPTION) {
+> >           ResourceMark rm(this);
+> >           jio_fprintf(defaultStream::error_stream(),
+> >                 "\nException: %s thrown from the UncaughtExceptionHandler"
+> >                 " in thread \"%s\"\n",
+> >                 pending_exception()->klass()->external_name(),
+> >                 get_thread_name());
+> >           CLEAR_PENDING_EXCEPTION;
+> >         }
+> >       }
+> >     }
+> > 
+> >     // Called before the java thread exit since we want to read info
+> >     // from java_lang_Thread object
+> >     EventThreadEnd event;
+> >     if (event.should_commit()) {
+> >         event.set_javalangthread(java_lang_Thread::thread_id(this->threadObj()));
+> >         event.commit();
+> >     }
+> > 
+> >     // Call after last event on thread
+> >     EVENT_THREAD_EXIT(this);
+> > 
+> >     // Call Thread.exit(). We try 3 times in case we got another Thread.stop during
+> >     // the execution of the method. If that is not enough, then we don't really care. Thread.stop
+> >     // is deprecated anyhow.
+> >     if (!is_Compiler_thread()) {
+> >       int count = 3;
+> >       while (java_lang_Thread::threadGroup(threadObj()) != NULL && (count-- > 0)) {
+> >         EXCEPTION_MARK;
+> >         JavaValue result(T_VOID);
+> >         KlassHandle thread_klass(THREAD, SystemDictionary::Thread_klass());
+> >         JavaCalls::call_virtual(&result,
+> >                               threadObj, thread_klass,
+> >                               vmSymbols::exit_method_name(),
+> >                               vmSymbols::void_method_signature(),
+> >                               THREAD);
+> >         CLEAR_PENDING_EXCEPTION;
+> >       }
+> >     }
+> >     // notify JVMTI
+> >     if (JvmtiExport::should_post_thread_life()) {
+> >       JvmtiExport::post_thread_end(this);
+> >     }
+> > 
+> >     // We have notified the agents that we are exiting, before we go on,
+> >     // we must check for a pending external suspend request and honor it
+> >     // in order to not surprise the thread that made the suspend request.
+> >     while (true) {
+> >       {
+> >         MutexLockerEx ml(SR_lock(), Mutex::_no_safepoint_check_flag);
+> >         if (!is_external_suspend()) {
+> >           set_terminated(_thread_exiting);
+> >           ThreadService::current_thread_exiting(this);
+> >           break;
+> >         }
+> >         // Implied else:
+> >         // Things get a little tricky here. We have a pending external
+> >         // suspend request, but we are holding the SR_lock so we
+> >         // can't just self-suspend. So we temporarily drop the lock
+> >         // and then self-suspend.
+> >       }
+> > 
+> >       ThreadBlockInVM tbivm(this);
+> >       java_suspend_self();
+> > 
+> >       // We're done with this suspend request, but we have to loop around
+> >       // and check again. Eventually we will get SR_lock without a pending
+> >       // external suspend request and will be able to mark ourselves as
+> >       // exiting.
+> >     }
+> >     // no more external suspends are allowed at this point
+> >   } else {
+> >     // before_exit() has already posted JVMTI THREAD_END events
+> >   }
+> > 
+> >   // Notify waiters on thread object. This has to be done after exit() is called
+> >   // on the thread (if the thread is the last thread in a daemon ThreadGroup the
+> >   // group should have the destroyed bit set before waiters are notified).
+> >   ensure_join(this);
+> >   assert(!this->has_pending_exception(), "ensure_join should have cleared");
+> > 
+> >   // 6282335 JNI DetachCurrentThread spec states that all Java monitors
+> >   // held by this thread must be released.  A detach operation must only
+> >   // get here if there are no Java frames on the stack.  Therefore, any
+> >   // owned monitors at this point MUST be JNI-acquired monitors which are
+> >   // pre-inflated and in the monitor cache.
+> >   //
+> >   // ensure_join() ignores IllegalThreadStateExceptions, and so does this.
+> >   if (exit_type == jni_detach && JNIDetachReleasesMonitors) {
+> >     assert(!this->has_last_Java_frame(), "detaching with Java frames?");
+> >     ObjectSynchronizer::release_monitors_owned_by_thread(this);
+> >     assert(!this->has_pending_exception(), "release_monitors should have cleared");
+> >   }
+> > 
+> >   // These things needs to be done while we are still a Java Thread. Make sure that thread
+> >   // is in a consistent state, in case GC happens
+> >   assert(_privileged_stack_top == NULL, "must be NULL when we get here");
+> > 
+> >   if (active_handles() != NULL) {
+> >     JNIHandleBlock* block = active_handles();
+> >     set_active_handles(NULL);
+> >     JNIHandleBlock::release_block(block);
+> >   }
+> > 
+> >   if (free_handle_block() != NULL) {
+> >     JNIHandleBlock* block = free_handle_block();
+> >     set_free_handle_block(NULL);
+> >     JNIHandleBlock::release_block(block);
+> >   }
+> > 
+> >   // These have to be removed while this is still a valid thread.
+> >   remove_stack_guard_pages();
+> > 
+> >   if (UseTLAB) {
+> >     tlab().make_parsable(true);  // retire TLAB
+> >   }
+> > 
+> >   if (JvmtiEnv::environments_might_exist()) {
+> >     JvmtiExport::cleanup_thread(this);
+> >   }
+> > 
+> >   // We must flush any deferred card marks before removing a thread from
+> >   // the list of active threads.
+> >   Universe::heap()->flush_deferred_store_barrier(this);
+> >   assert(deferred_card_mark().is_empty(), "Should have been flushed");
+> > 
+> > #if INCLUDE_ALL_GCS
+> >   // We must flush the G1-related buffers before removing a thread
+> >   // from the list of active threads. We must do this after any deferred
+> >   // card marks have been flushed (above) so that any entries that are
+> >   // added to the thread's dirty card queue as a result are not lost.
+> >   if (UseG1GC) {
+> >     flush_barrier_queues();
+> >   }
+> > #endif // INCLUDE_ALL_GCS
+> > 
+> >   // Remove from list of active threads list, and notify VM thread if we are the last non-daemon thread
+> >   Threads::remove(this);
+> > }
+> > ```
+> >
+> > 其中有一句，专门用来唤醒在Thread类上的waiters
+> >
+> > ```c++
+> >   // Notify waiters on thread object. This has to be done after exit() is called
+> >   // on the thread (if the thread is the last thread in a daemon ThreadGroup the
+> >   // group should have the destroyed bit set before waiters are notified).
+> >   ensure_join(this);
+> > ```
+> >
+> > [ensure_join()](http://hg.openjdk.java.net/jdk8u/jdk8u/hotspot/file/9ce27f0a4683/src/share/vm/runtime/thread.cpp#l1709)
+> >
+> > ```c++
+> > static void ensure_join(JavaThread* thread) {
+> >   // We do not need to grap the Threads_lock, since we are operating on ourself.
+> >   Handle threadObj(thread, thread->threadObj());
+> >   assert(threadObj.not_null(), "java thread object must exist");
+> >   ObjectLocker lock(threadObj, thread);
+> >   // Ignore pending exception (ThreadDeath), since we are exiting anyway
+> >   thread->clear_pending_exception();
+> >   // Thread is exiting. So set thread_status field in  java.lang.Thread class to TERMINATED.
+> >   java_lang_Thread::set_thread_status(threadObj(), java_lang_Thread::TERMINATED);
+> >   // Clear the native thread instance - this makes isAlive return false and allows the join()
+> >   // to complete once we've done the notify_all below
+> >   java_lang_Thread::set_thread(threadObj(), NULL);
+> >   lock.notify_all(thread);
+> >   // Ignore pending exception (ThreadDeath), since we are exiting anyway
+> >   thread->clear_pending_exception();
+> > }
+> > ```
+> >
+> > 其中强调了，会调用objectLocker::notify_all()方法
+>
+> 
 
 
 
