@@ -1,7 +1,6 @@
 package jobCode;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class AliTest {
     public static void main(String[] args) {
