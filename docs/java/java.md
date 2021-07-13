@@ -465,7 +465,9 @@ lock record在线程的Interpretered Frame上(解释帧)分配
 
   - HotSpot为所有加载的类型，在class元数据——InstanceKlass中保留了一个MarkWord原型——mark_prototype。这个值的bias位域决定了该类型的对象是否允许被偏向锁定。与此同时，当前的epoch位也被保留在prototype中。这意味着，对应class的新对象可以简单地直接拷贝这个原型值，而不必在后面进行修正。在批量重偏向(bulk rebias)的操作中，prototype的epoch位将会被更新；在批量吊销(bulk revoke)的操作中，prototype将会被置成不可偏向的状态——bias位被置0。
 
-  - 如果是在JVM启动后的头四秒内，即使偏向锁的特性被打开，出于性能（启动时间）的原因，JVM也会将其禁止，即在这四秒内，prototype MarkWord的bias位被设置为0，因为新对象是copy的这个原型值，所以在这四秒内创建的对象，禁止被偏向，因为它们的bias位copy的为0。四秒之后，prototype MarkWord的bias位会被重设为1，这时开始，再创建的新对象就可以被偏向了。`-XX:BiasedLockingStartupDelay=0`可以关闭这四秒的延迟，当然也可以设置为其他值。
+  - 如果是在JVM启动后的头四秒内，即使偏向锁的特性被打开，出于性能（启动时间）的原因，JVM也会将其禁止，即在这四秒内，prototype MarkWord的bias位被设置为0，因为新对象是copy的这个原型值，所以在这四秒内创建的对象，禁止被偏向，因为它们的bias位copy的为0。四秒之后，prototype MarkWord的bias位会被重设为1，这时开始，再创建的新对象就可以被偏向了。`-XX:BiasedLockingStartupDelay=0`可以关闭这四秒的延迟，当然也可以设置为其他值。+
+
+  - 
 
 - 具体流程
 
